@@ -1,0 +1,1040 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!-- CSS stillerini ekleyelim -->
+<style>
+    body {
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+
+    .card {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s, background-color 0.3s, color 0.3s;
+        border: none;
+        margin: 5px; /* Kartlar arasındaki boşlukları azaltıyoruz */
+        text-align: center; /* Kart içeriğini ortalıyoruz */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 0;
+    }
+
+        .card:hover {
+            transform: scale(1.05);
+            background-color: #1D3A67; /* Hover durumunda arka plan rengi */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .card img {
+            height: 80px; /* Resim boyutunu küçük tutuyoruz */
+            object-fit: contain;
+            padding: 10px;
+            filter: invert(0) brightness(1);
+            transition: filter 0.3s ease;
+        }
+
+        .card:hover img {
+            filter: invert(1) brightness(2); /* Hover durumunda resim beyaz olacak */
+        }
+
+    .card-body p {
+        font-weight: bold;
+        font-size: 0.9rem; /* Yazı boyutunu küçülttük */
+        color: #707070; /* İlk hali gri (#707070) */
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+
+    .card:hover .card-body p {
+        color: white; /* Hover durumunda yazı beyaz */
+    }
+
+    /* Kartların her satıra 5 tane sığmasını sağlayan yapı */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .col-lg-3, .col-md-4, .col-sm-6 {
+        flex: 1 1 calc(20% - 5px); /* Kart genişliği her satırda 5 tane olacak şekilde ayarlandı */
+        max-width: calc(20% - 5px); /* Daha az boşluk bırakıldı */
+        box-sizing: border-box;
+    }
+
+    @@media only screen and (max-width: 992px) {
+        .col-lg-3, .col-md-4, .col-6 {
+            flex: none; /* Kart genişliği her satırda 5 tane olacak şekilde ayarlandı */
+            max-width: 100%; /* Daha az boşluk bırakıldı */
+            box-sizing: border-box;
+        }
+    }
+
+    /* Metrik kartları için boyut düzenlemeleri */
+    .metrics-container {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px; /* Boşluğu azalttık */
+        margin-bottom: 15px; /* Margin'i azalttık */
+        padding: 0 15px; /* Yanlara padding ekledik */
+    }
+
+    .metric-card {
+        padding: 10px; /* Padding'i azalttık */
+        border-radius: 6px; /* Border radius'u küçülttük */
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .metric-title {
+        font-size: 12px; /* Font boyutunu küçülttük */
+        margin-bottom: 6px;
+    }
+
+    .metric-value {
+        font-size: 20px; /* Font boyutunu küçülttük */
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+
+    .metric-unit {
+        font-size: 10px; /* Font boyutunu küçülttük */
+    }
+
+    /* Grafik container boyutları */
+    .charts-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px; /* Gap'i azalttık */
+        padding: 0 15px; /* Yanlara padding ekledik */
+        margin-bottom: 15px;
+    }
+
+    .chart-card {
+        background: white;
+        padding: 15px; /* Padding'i azalttık */
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Gölgeyi azalttık */
+    }
+
+    .chart-title {
+        font-size: 14px; /* Font boyutunu küçülttük */
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    /* Metrik kartları için renkler */
+    .blue-card {
+        background-color: #1E3559;
+        color: #fff;
+    }
+
+    .yellow-card {
+        background-color: #194181;
+        color: #fff;
+    }
+
+    .green-card {
+        background-color: #296299;
+        color: #fff;
+    }
+
+    .pink-card {
+        background-color: #4CA7E1;
+        color: #fff;
+    }
+
+    .purple-card {
+        background-color: #3B86A1;
+        color: #fff;
+    }
+
+    .orange-card {
+        background-color: #52B5AF;
+        color: #fff;
+    }
+
+    #pieChart {
+        height: 500px !important; /* Pasta grafik için daha küçük */
+        width: 500px !important;
+        display: flex;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    #barChart {
+        height: 350px !important; /* Çubuk grafik için daha büyük */
+        width: 100% !important;
+        display: flex;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    /* Todo list için stiller */
+    .todo-container {
+        padding: 0 15px;
+        margin-bottom: 20px;
+    }
+
+    .todo-card {
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 15px;
+    }
+
+    .todo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .todo-title {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+
+    .todo-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .todo-filter {
+        margin-right: 10px;
+        font-size: 12px;
+        color: #666;
+    }
+
+        .todo-filter select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+
+    .todo-add-btn {
+        background-color: #1E3559;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .todo-add-btn:hover {
+            background-color: #194181;
+        }
+
+    .todo-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .todo-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s;
+    }
+
+        .todo-item:hover {
+            background-color: #f9f9f9;
+        }
+
+    .todo-checkbox {
+        margin-right: 10px;
+        position: relative;
+    }
+
+        .todo-checkbox input {
+            opacity: 0;
+            position: absolute;
+        }
+
+    .checkmark {
+        height: 20px;
+        width: 20px;
+        background-color: #eee;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .todo-checkbox input:checked ~ .checkmark {
+        background-color: #296299;
+    }
+
+    .checkmark:after {
+        content: "";
+        display: none;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    .todo-checkbox input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+    .todo-text {
+        flex: 1;
+        font-size: 13px;
+        color: #333;
+        margin-right: 10px;
+    }
+
+    .todo-completed .todo-text {
+        text-decoration: line-through;
+        color: #999;
+    }
+
+    .todo-date {
+        font-size: 11px;
+        color: #999;
+        min-width: 80px;
+    }
+
+    .todo-priority {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .priority-high {
+        background-color: #E53935;
+    }
+
+    .priority-medium {
+        background-color: #FB8C00;
+    }
+
+    .priority-low {
+        background-color: #43A047;
+    }
+
+    .todo-delete {
+        color: #ccc;
+        font-size: 14px;
+        cursor: pointer;
+        margin-left: 5px;
+        visibility: hidden;
+    }
+
+    .todo-item:hover .todo-delete {
+        visibility: visible;
+    }
+
+    .todo-delete:hover {
+        color: #E53935;
+    }
+
+    .todo-input-container {
+        display: flex;
+        margin-top: 15px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+        display: none;
+    }
+
+        .todo-input-container.active {
+            display: flex;
+        }
+
+    .todo-input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px 10px;
+        font-size: 13px;
+        margin-right: 10px;
+    }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: #4CA7E1;
+            box-shadow: 0 0 0 2px rgba(76, 167, 225, 0.1);
+        }
+
+    .todo-priority-select {
+        margin-right: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .todo-submit-btn {
+        background-color: #296299;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 15px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .todo-submit-btn:hover {
+            background-color: #1E3559;
+        }
+
+    .todo-status {
+        font-size: 11px;
+        color: #999;
+        margin-top: 10px;
+        text-align: right;
+    }
+</style>
+
+<style>
+    /* İki sütunlu düzen için container */
+    .two-column-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        padding: 0 15px;
+        margin-bottom: 20px;
+    }
+
+    /* CRM Aktiviteler için stiller */
+    .activity-card {
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 15px;
+        height: 100%;
+    }
+
+    .activity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .activity-title {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+
+    .activity-tabs {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .activity-tab {
+        padding: 8px 15px;
+        font-size: 12px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+    }
+
+        .activity-tab.active {
+            border-bottom: 2px solid #1E3559;
+            font-weight: bold;
+            color: #1E3559;
+        }
+
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 10px;
+        border-bottom: 1px solid #eee;
+        position: relative;
+    }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background-color: #f9f9f9;
+        }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+        color: white;
+        font-size: 16px;
+    }
+
+    .icon-call {
+        background-color: #4CA7E1;
+    }
+
+    .icon-email {
+        background-color: #43A047;
+    }
+
+    .icon-meeting {
+        background-color: #E53935;
+    }
+
+    .icon-note {
+        background-color: #FB8C00;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-name {
+        font-size: 13px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 3px;
+    }
+
+    .activity-company {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .activity-desc {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+
+    .activity-time {
+        font-size: 11px;
+        color: #999;
+        display: block;
+    }
+
+    .activity-badge {
+        position: absolute;
+        top: 12px;
+        right: 10px;
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        color: white;
+    }
+
+    .badge-new {
+        background-color: #E53935;
+    }
+
+    .badge-planned {
+        background-color: #43A047;
+    }
+
+    .activity-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
+
+    .activity-more {
+        font-size: 12px;
+        color: #1E3559;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .activity-action-btn {
+        background-color: #1E3559;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .activity-action-btn:hover {
+            background-color: #194181;
+        }
+
+    /* Todo list için maksimum yükseklik düzenlemesi */
+    .todo-list {
+        max-height: 250px; /* Daha önce 350px idi, küçültüldü */
+    }
+
+    .todo-card {
+        height: 100%; /* Yüksekliği CRM kartıyla eşleştirmek için */
+    }
+</style>
+
+
+<div class="main-content pt-5 mt-5">
+    <div class="px-5">
+        <div class="row px-lg-5 px-1">
+        </div>
+
+        <div class="metrics-container">
+            <div class="metric-card blue-card">
+                <div class="metric-title">Fırsat TL</div>
+                <div class="metric-value">1.152.322</div>
+                <div class="metric-unit">TL</div>
+            </div>
+            <div class="metric-card yellow-card">
+                <div class="metric-title">Aktivite</div>
+                <div class="metric-value">14</div>
+                <div class="metric-unit">Adet</div>
+            </div>
+            <div class="metric-card green-card">
+                <div class="metric-title">Teklif</div>
+                <div class="metric-value">379.559</div>
+                <div class="metric-unit">TL</div>
+            </div>
+            <div class="metric-card pink-card">
+                <div class="metric-title">Kazanılmış Teklif</div>
+                <div class="metric-value">270.050</div>
+                <div class="metric-unit">TL</div>
+            </div>
+            <div class="metric-card purple-card">
+                <div class="metric-title">Müşteri</div>
+                <div class="metric-value">11</div>
+                <div class="metric-unit">Adet</div>
+            </div>
+            <div class="metric-card orange-card">
+                <div class="metric-title">Numune</div>
+                <div class="metric-value">0</div>
+                <div class="metric-unit">Adet</div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">Teklif Aşamalarım</div>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Teklif Durum Raporu TL</div>
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Todo Liste Eklentisi -->
+        <div class="two-column-container">
+            <!-- Sol Sütun: Todo Liste -->
+            <div class="todo-card">
+                <div class="todo-header">
+                    <h3 class="todo-title">Yapılacaklar Listesi</h3>
+                    <div class="todo-actions">
+                        <div class="todo-filter">
+                            <select id="todo-filter-select">
+                                <option value="all">Tümü</option>
+                                <option value="active">Aktif</option>
+                                <option value="completed">Tamamlanan</option>
+                            </select>
+                        </div>
+                        <button class="todo-add-btn" id="todo-add-btn">Yeni Görev</button>
+                    </div>
+                </div>
+
+                <div class="todo-input-container" id="todo-input-container">
+                    <input type="text" class="todo-input" id="todo-input" placeholder="Yeni görev ekle...">
+                    <select class="todo-priority-select" id="todo-priority-select">
+                        <option value="low">Düşük</option>
+                        <option value="medium" selected>Orta</option>
+                        <option value="high">Yüksek</option>
+                    </select>
+                    <button class="todo-submit-btn" id="todo-submit-btn">Ekle</button>
+                </div>
+
+                <ul class="todo-list" id="todo-list">
+                    <li class="todo-item" data-id="1" data-priority="high">
+                        <div class="todo-priority priority-high"></div>
+                        <label class="todo-checkbox">
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="todo-text">ABC Şirketi ile toplantı</span>
+                        <span class="todo-date">Bugün, 14:30</span>
+                        <span class="todo-delete">×</span>
+                    </li>
+                    <li class="todo-item" data-id="2" data-priority="medium">
+                        <div class="todo-priority priority-medium"></div>
+                        <label class="todo-checkbox">
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="todo-text">XYZ Firmasına teklif hazırla</span>
+                        <span class="todo-date">Yarın, 12:00</span>
+                        <span class="todo-delete">×</span>
+                    </li>
+                    <li class="todo-item todo-completed" data-id="3" data-priority="low">
+                        <div class="todo-priority priority-low"></div>
+                        <label class="todo-checkbox">
+                            <input type="checkbox" checked>
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="todo-text">Müşteri raporlarını güncelle</span>
+                        <span class="todo-date">Dün, 16:00</span>
+                        <span class="todo-delete">×</span>
+                    </li>
+                    <li class="todo-item" data-id="4" data-priority="high">
+                        <div class="todo-priority priority-high"></div>
+                        <label class="todo-checkbox">
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="todo-text">Haftalık satış raporunu hazırla</span>
+                        <span class="todo-date">26.02.2025</span>
+                        <span class="todo-delete">×</span>
+                    </li>
+                </ul>
+
+                <div class="todo-status">
+                    <span id="todo-count">3 aktif görev, 1 tamamlanan</span>
+                </div>
+            </div>
+
+            <!-- Sağ Sütun: CRM Aktiviteler -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <h3 class="activity-title">Son Aktiviteler</h3>
+                </div>
+
+                <!-- Aktivite Tabları -->
+                <div class="activity-tabs">
+                    <div class="activity-tab active" data-tab="all">Tümü</div>
+                    <div class="activity-tab" data-tab="calls">Aramalar</div>
+                    <div class="activity-tab" data-tab="meetings">Toplantılar</div>
+                    <div class="activity-tab" data-tab="emails">E-postalar</div>
+                </div>
+
+                <!-- Aktivite Listesi -->
+                <ul class="activity-list" id="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon icon-call">
+                            <i class="fa">📞</i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-name">Ahmet Yılmaz</div>
+                            <div class="activity-company">Teknosa A.Ş.</div>
+                            <div class="activity-desc">Telefon görüşmesi - Ürün demo talebi hakkında bilgi verildi.</div>
+                            <span class="activity-time">Bugün, 10:15</span>
+                        </div>
+                        <span class="activity-badge badge-new">Yeni</span>
+                    </li>
+
+                    <li class="activity-item">
+                        <div class="activity-icon icon-meeting">
+                            <i class="fa">👥</i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-name">Mehmet Kaya</div>
+                            <div class="activity-company">ABC Holding</div>
+                            <div class="activity-desc">Online toplantı - Yeni ürün tanıtımı gerçekleştirildi. İlgilendikleri ürünler not alındı.</div>
+                            <span class="activity-time">Bugün, 09:30</span>
+                        </div>
+                    </li>
+
+                    <li class="activity-item">
+                        <div class="activity-icon icon-email">
+                            <i class="fa">✉️</i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-name">Ayşe Demir</div>
+                            <div class="activity-company">DBT Dora Bilişim</div>
+                            <div class="activity-desc">E-posta gönderildi - Talep ettikleri fiyat teklifini içeren dokümanlar iletildi.</div>
+                            <span class="activity-time">Dün, 16:45</span>
+                        </div>
+                    </li>
+
+                    <li class="activity-item">
+                        <div class="activity-icon icon-note">
+                            <i class="fa">📝</i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-name">Kemal Özkan</div>
+                            <div class="activity-company">Megatek Ltd.</div>
+                            <div class="activity-desc">Not - Müşteri ziyareti sonrası ihtiyaçları belirlendi. İlgili departmanlara bilgi verilecek.</div>
+                            <span class="activity-time">24.02.2025, 13:20</span>
+                        </div>
+                    </li>
+
+                    <li class="activity-item">
+                        <div class="activity-icon icon-meeting">
+                            <i class="fa">👥</i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-name">Zeynep Aydın</div>
+                            <div class="activity-company">İzmir Holding</div>
+                            <div class="activity-desc">Toplantı planlandı - Yeni dönem işbirliği teklifleri görüşülecek.</div>
+                            <span class="activity-time">27.02.2025, 10:00</span>
+                        </div>
+                        <span class="activity-badge badge-planned">Planlandı</span>
+                    </li>
+                </ul>
+
+
+            </div>
+        </div>
+
+        <!-- Aktivite tabları için JavaSript - Mevcut script'in sonuna ekleyin -->
+        <script>
+            // Sayfa yüklendiğinde aktivite tabları için event listener'lar ekle
+            document.addEventListener('DOMContentLoaded', function() {
+                // Aktivite tabları için event listener'lar
+                const activityTabs = document.querySelectorAll('.activity-tab');
+
+                activityTabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Aktif tab'ı güncelle
+                        activityTabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+
+                        // Tab içeriğini filtrele
+                        const tabType = this.getAttribute('data-tab');
+                        filterActivities(tabType);
+                    });
+                });
+
+                function filterActivities(tabType) {
+                    const activities = document.querySelectorAll('.activity-item');
+
+                    activities.forEach(activity => {
+                        if (tabType === 'all') {
+                            activity.style.display = 'flex';
+                        } else {
+                            // Demo amaçlı basit bir filtreleme
+                            const icon = activity.querySelector('.activity-icon');
+                            const isCall = icon.classList.contains('icon-call');
+                            const isMeeting = icon.classList.contains('icon-meeting');
+                            const isEmail = icon.classList.contains('icon-email');
+
+                            if ((tabType === 'calls' && isCall) ||
+                                (tabType === 'meetings' && isMeeting) ||
+                                (tabType === 'emails' && isEmail)) {
+                                activity.style.display = 'flex';
+                            } else {
+                                activity.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+        <script>
+            // Pasta Grafik
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Açık', 'Kazandık', 'Kaybettik', 'Ertelendi', 'İptal'],
+                    datasets: [{
+                        data: [11, 58, 8, 20, 3],
+                        backgroundColor: [
+                            '#1E3559',
+                            '#296299',
+                            '#4CA7E1',
+                            '#3B86A1',
+                            '#A13B47'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Çubuk Grafik
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['2024-1', '2024-2'],
+                    datasets: [{
+                        label: 'Hedef',
+                        data: [650000, 220000],
+                        backgroundColor: '#1E3559',
+                        barThickness: 50 // Burada barThickness ile çubuğun kalınlığını ayarlıyoruz.
+                    }, {
+                        label: 'Gerçekleşen',
+                        data: [600000, 200000],
+                        backgroundColor: '#4CA7E1',
+                        barThickness: 50 // Aynı şekilde burada da çubuğun kalınlığını ayarlıyoruz.
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // TodoList Fonksiyonları
+            document.addEventListener('DOMContentLoaded', function() {
+                const todoList = document.getElementById('todo-list');
+                const todoInput = document.getElementById('todo-input');
+                const todoAddBtn = document.getElementById('todo-add-btn');
+                const todoSubmitBtn = document.getElementById('todo-submit-btn');
+                const todoInputContainer = document.getElementById('todo-input-container');
+                const todoPrioritySelect = document.getElementById('todo-priority-select');
+                const todoFilterSelect = document.getElementById('todo-filter-select');
+                const todoCount = document.getElementById('todo-count');
+
+                // Yeni görev ekleme formunu göster/gizle
+                todoAddBtn.addEventListener('click', function() {
+                    todoInputContainer.classList.toggle('active');
+                    if (todoInputContainer.classList.contains('active')) {
+                        todoInput.focus();
+                    }
+                });
+
+                // Yeni görev ekleme
+                todoSubmitBtn.addEventListener('click', function() {
+                    addNewTask();
+                });
+
+                todoInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addNewTask();
+                    }
+                });
+
+                function addNewTask() {
+                    const taskText = todoInput.value.trim();
+                    if (taskText === '') return;
+
+                    const priority = todoPrioritySelect.value;
+                    const now = new Date();
+                    const dateOptions = { month: 'numeric', day: 'numeric' };
+                    const dateStr = now.toLocaleDateString('tr-TR', dateOptions);
+                    const timeStr = now.getHours().toString().padStart(2, '0') + ':' +
+                                  now.getMinutes().toString().padStart(2, '0');
+
+                    const newTask = document.createElement('li');
+                    newTask.className = 'todo-item';
+                    newTask.setAttribute('data-id', Date.now());
+                    newTask.setAttribute('data-priority', priority);
+
+                    const priorityClass = `priority-${priority}`;
+
+                    newTask.innerHTML = `
+                        <div class="todo-priority ${priorityClass}"></div>
+                        <label class="todo-checkbox">
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="todo-text">${taskText}</span>
+                        <span class="todo-date">Bugün, ${timeStr}</span>
+                        <span class="todo-delete">×</span>
+                    `;
+
+                    todoList.prepend(newTask);
+                    todoInput.value = '';
+                    updateTodoCount();
+
+                    // Yeni eklenen task için event listener'ları ekle
+                    bindTaskEvents(newTask);
+                }
+
+                // Görev silme ve tamamlama durumunu güncelleme
+                function bindTaskEvents(taskItem) {
+                    const checkbox = taskItem.querySelector('.todo-checkbox input');
+                    const deleteBtn = taskItem.querySelector('.todo-delete');
+
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            taskItem.classList.add('todo-completed');
+                        } else {
+                            taskItem.classList.remove('todo-completed');
+                        }
+                        updateTodoCount();
+                    });
+
+                    deleteBtn.addEventListener('click', function() {
+                        taskItem.remove();
+                        updateTodoCount();
+                    });
+                }
+
+                // Mevcut görevler için event listener'ları ekle
+                document.querySelectorAll('.todo-item').forEach(function(taskItem) {
+                    bindTaskEvents(taskItem);
+                });
+
+                // Filtre fonksiyonu
+                todoFilterSelect.addEventListener('change', function() {
+                    const filterValue = this.value;
+                    const taskItems = document.querySelectorAll('.todo-item');
+
+                    taskItems.forEach(function(taskItem) {
+                        if (filterValue === 'all') {
+                            taskItem.style.display = 'flex';
+                        } else if (filterValue === 'active' && !taskItem.classList.contains('todo-completed')) {
+                            taskItem.style.display = 'flex';
+                        } else if (filterValue === 'completed' && taskItem.classList.contains('todo-completed')) {
+                            taskItem.style.display = 'flex';
+                        } else {
+                            taskItem.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Görev sayılarını güncelle
+                function updateTodoCount() {
+                    const totalTasks = document.querySelectorAll('.todo-item').length;
+                    const completedTasks = document.querySelectorAll('.todo-item.todo-completed').length;
+                    const activeTasks = totalTasks - completedTasks;
+
+                    todoCount.textContent = `${activeTasks} aktif görev, ${completedTasks} tamamlanan`;
+                }
+
+                // Sayfa yüklendiğinde görev sayısını güncelle
+                updateTodoCount();
+            });
+        </script>
+    </div>
+</div>

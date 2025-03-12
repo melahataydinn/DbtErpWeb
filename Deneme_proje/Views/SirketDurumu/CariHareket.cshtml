@@ -1,0 +1,1112 @@
+﻿@model IEnumerable<Deneme_proje.Models.SirketDurumuEntites.CariHareketFoyu>
+@{
+	ViewData["Title"] = "Cari Hareket Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	// Toplam değişkenler tanımlanıyor
+	decimal totalAnaDovizBorç = 0;
+	decimal totalAnaDovizAlacak = 0;
+	decimal totalAnaDovizBakiye = 0;
+
+	decimal totalAltDovizBorç = 0;
+	decimal totalAltDovizAlacak = 0;
+	decimal totalAltDovizBakiye = 0;
+
+	decimal totalOrjDovizBorç = 0;
+	decimal totalOrjDovizAlacak = 0;
+	decimal totalOrjDovizBakiye = 0;
+}
+
+<link href="~/content/assets/css/bahcepinar.css" rel="stylesheet" />
+<!-- Mevcut stil bilgileri korundu -->
+<style>
+	/* Ana tasarım stilleri */
+	body {
+		background-color: #f8f9fa;
+	}
+
+	.page-title {
+		color: #162e54;
+		font-weight: 600;
+		margin-bottom: 1.5rem;
+		border-left: 4px solid #0076a8;
+		padding-left: 15px;
+	}
+
+	/* Diğer CSS stilleri (korundu) */
+	/* ... */
+
+	/* Tıklanabilir evrak tipi için eklenen stil */
+	.clickable-row {
+		cursor: pointer;
+	}
+
+	.clickable-cell {
+		color: #0076a8;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.clickable-cell:hover {
+		color: #00648f;
+		text-decoration: underline;
+	}
+
+	/* PDF Çıktı butonu için stil */
+	.btn-pdf {
+		background: linear-gradient(135deg, #dc3545 0%, #9a0000 100%);
+		color: white;
+		border: none;
+		border-radius: 0.25rem;
+		padding: 0.5rem 1rem;
+		transition: all 0.3s ease;
+		margin-right: 0.5rem;
+	}
+
+	.btn-pdf:hover {
+		background: linear-gradient(135deg, #c82333 0%, #7d0000 100%);
+		transform: translateY(-2px);
+		box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+		color: white;
+	}
+
+	/* Genişletilmiş modal stili */
+	.modal-xl {
+		max-width: 95%;
+	}
+
+	/* Grup başlığı stili */
+	.group-header {
+		background-color: #f0f0f0;
+		font-weight: bold;
+		border-bottom: 2px solid #162e54;
+	}
+
+	/* Toplam satırı stili */
+	.group-total {
+		background-color: #e6f3ff;
+		font-weight: bold;
+	}
+
+	.modal-content {
+		background-color: #fefefe;
+		margin: 50% auto;
+		padding: 20px;
+		border: 1px solid #888;
+		width: 100%;
+		height: 100%;
+	}
+
+	table.dataTable tbody td {
+		font-size: 15px;
+		word-wrap: break-word;
+		white-space: normal;
+	}
+</style>
+<style>
+	/* Stok arama için özel stil */
+	.stok-arama-container {
+		position: relative;
+		margin-right: 10px;
+		min-width: 300px;
+	}
+
+	#cariArama {
+		width: 100%;
+		padding: 8px;
+		border: 1px solid #ced4da;
+		border-radius: 4px;
+	}
+
+	#cariCodeList {
+		width: 100%;
+		max-height: 200px;
+		overflow-y: auto;
+	}
+
+	.hidden-select {
+		display: none;
+	}
+
+	/* PDF çıktısı için ek stiller */
+	@@media print {
+		body *
+
+	{
+		visibility: hidden;
+	}
+
+	#pdfExportContent, #pdfExportContent * {
+		visibility: visible;
+	}
+
+	#pdfExportContent {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+
+	}
+	/* DataTables butonları için stil */
+	div.dt-buttons {
+		margin-bottom: 15px;
+		text-align: right;
+	}
+
+	.dt-button {
+		margin-right: 5px !important;
+		border-radius: 4px !important;
+		padding: 6px 12px !important;
+		font-size: 14px !important;
+		transition: all 0.3s ease;
+	}
+
+		.dt-button:hover {
+			opacity: 0.85;
+			transform: translateY(-2px);
+			box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+		}
+
+	.btn-info {
+		background-color: #17a2b8 !important;
+		color: white !important;
+	}
+
+	.btn-primary {
+		background-color: #007bff !important;
+		color: white !important;
+	}
+
+	.btn-success {
+		background-color: #28a745 !important;
+		color: white !important;
+	}
+
+	.btn-danger {
+		background-color: #dc3545 !important;
+		color: white !important;
+	}
+
+	.btn-secondary {
+		background-color: #6c757d !important;
+		color: white !important;
+	}
+
+	/* Yazdırma görünümü için stil */
+	@@media print {
+		.dt-buttons, .dataTables_filter, .dataTables_length, .dataTables_paginate, .dataTables_info
+
+	{
+		display: none !important;
+	}
+
+	.card-header {
+		background-color: #fff !important;
+		color: #000 !important;
+		border-bottom: 2px solid #000 !important;
+	}
+
+	/* PDF çıktısı için stil düzeltmeleri */
+	table th {
+		background-color: #162e54 !important;
+		color: white !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	}
+	/* Modal ve detay içeriği için iyileştirilmiş stiller */
+	.modal-xl {
+		max-width: 95%;
+	}
+
+	.modal-body {
+		max-height: 75vh;
+		overflow-y: auto;
+	}
+
+	.detail-table th {
+		background-color: #162e54;
+		color: white;
+		font-weight: bold;
+	}
+
+	.detail-table td, .detail-table th {
+		border: 1px solid #ddd;
+		padding: 8px;
+	}
+
+	.detail-table tr:nth-child(even) {
+		background-color: #f9f9f9;
+	}
+
+	.detail-table .text-right {
+		text-align: right;
+	}
+
+	/* PDF çıktı butonu için geliştirilmiş stil */
+	.btn-pdf {
+		background: linear-gradient(135deg, #dc3545 0%, #9a0000 100%);
+		color: white;
+		border: none;
+		border-radius: 0.25rem;
+		padding: 0.5rem 1rem;
+		transition: all 0.3s ease;
+		margin-right: 0.5rem;
+		position: relative;
+		overflow: hidden;
+	}
+
+		.btn-pdf:hover {
+			background: linear-gradient(135deg, #c82333 0%, #7d0000 100%);
+			transform: translateY(-2px);
+			box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+			color: white;
+		}
+
+		.btn-pdf:active {
+			transform: translateY(0);
+			box-shadow: none;
+		}
+
+		.btn-pdf::after {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 5px;
+			height: 5px;
+			background: rgba(255, 255, 255, 0.7);
+			opacity: 0;
+			border-radius: 100%;
+			transform: scale(1, 1) translate(-50%);
+			transform-origin: 50% 50%;
+		}
+
+		.btn-pdf:focus:not(:active)::after {
+			animation: ripple 1s ease-out;
+		}
+
+	@@keyframes ripple {
+		0%
+
+	{
+		transform: scale(0, 0);
+		opacity: 0.5;
+	}
+
+	20% {
+		transform: scale(25, 25);
+		opacity: 0.3;
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(40, 40);
+	}
+
+	}
+	.search-form {
+		background: transparent;
+	box-shadow: none;
+	display: flex
+;
+	justify-content: center;
+	margin: 0 auto;
+	}
+	.page-title {
+    color: #162e54;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-left:none ;
+    padding-left: 15px;
+    background-color: transparent;
+    box-shadow: none;
+    margin: 0;
+}
+</style>
+
+<div class="main-content mt-5">
+	<div class="container-fluid px-lg-4 px-3">
+		<!-- Başlık ve Breadcrumb -->
+		<div class="row mb-4">
+			<div class="col-12">
+				<h2 class="page-title">Cari Hareket Raporu</h2>
+				<nav aria-label="breadcrumb">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item">
+							<a href="/Home/Index">
+								<i class="fa fa-home"></i> Ana Sayfa
+							</a>
+						</li>
+						<li class="breadcrumb-item">
+							<a href="/SirketDurumu/">Cari İşlemler</a>
+						</li>
+						<li class="breadcrumb-item active" aria-current="page">Cari Hareket</li>
+					</ol>
+				</nav>
+			</div>
+		</div>
+
+		<!-- Arama Formu -->
+		<div class="row mb-4">
+			<div class="col-lg-12">
+				<div class="card search-form">
+		<form method="get" class="form-inline">
+	<!-- Görünen cari bilgisi için gizli alan -->
+	<input type="hidden" id="selectedCariText" name="selectedCariText" 
+		   value="@(ViewData["SelectedCariText"] ?? "")" />
+
+	<!-- Cari kodu arama için datalist yapısı -->
+						@* CariHareket.cshtml dosyasındaki arama formu kısmına yapılacak değişiklik *@
+
+<div class="form-group stok-arama-container">
+	<input type="text" id="cariArama" class="form-control"
+		   placeholder="Cari Kodu veya Adını Yazarak Arayın"
+		   list="cariCodeList"
+		   autocomplete="off"
+		   value="@ViewData["SelectedCariText"]"
+		   onchange="updateCariCodeSelect(this.value)">
+
+	<datalist id="cariCodeList">
+								@{
+									// Controller'dan gelen cari kodları listesi
+									var cariKodlariList = ViewData["CariKodlari"] != null
+										? Newtonsoft.Json.JsonConvert.DeserializeObject<List<Deneme_proje.Models.SirketDurumuEntites.CariHesap>>(ViewData["CariKodlari"].ToString())
+										: new List<Deneme_proje.Models.SirketDurumuEntites.CariHesap>();
+
+									// Cari kodlarını listele
+									foreach (var cari in cariKodlariList)
+									{
+						<option value="@cari.CariKod">@cari.CariKod - @cari.CariUnvan1</option>
+									}
+								}
+	</datalist>
+
+	<!-- Gerçek seçim kutusu (gizli) -->
+	<select id="cariKodSelect" name="cariKod" class="hidden-select">
+		<option value="">Cari Seçiniz</option>
+								@foreach (var cari in cariKodlariList)
+								{
+									var selected = ViewData["SelectedCariKod"]?.ToString() == cari.CariKod ? "selected" : "";
+				<option value="@cari.CariKod" @@selected>@cari.CariKod - @cari.CariUnvan1</option>
+								}
+	</select>
+</div>
+
+	<div class="form-group">
+		<label for="ilkTar">İlk Tarih:</label>
+		<input type="date" id="ilkTar" name="ilkTar" class="form-control" value="@ViewData["IlkTarih"]" />
+	</div>
+
+	<div class="form-group ">
+		<label for="sonTar">Son Tarih:</label>
+		<input type="date" id="sonTar" name="sonTar" class="form-control" value="@ViewData["SonTarih"]" />
+	</div>
+
+	<div class="form-group">
+		<button type="submit" class="btn btn-tumblr btn-shadow waves-effect waves-light">Ara</button>
+	</div>
+</form>
+
+				</div>
+			</div>
+		</div>
+
+		@if (Model != null && Model.Any())
+		{
+			// Toplamları hesaplama
+			foreach (var item in Model)
+			{
+				// Ana döviz için toplamları hesaplama
+				totalAnaDovizBorç += item.AnaDövizBorç;
+				totalAnaDovizAlacak += item.AnaDövizAlacak;
+				// Bakiye her satırda borç ve alacak farkı olarak hesaplanmalı
+				totalAnaDovizBakiye += item.AnaDövizAlacak - item.AnaDövizBorç;
+
+				// Alt döviz için toplamları hesaplama
+				totalAltDovizBorç += item.AltDövizBorç;
+				totalAltDovizAlacak += item.AltDövizAlacak;
+				totalAltDovizBakiye += item.AltDövizAlacak - item.AltDövizBorç;
+
+				// Orjinal döviz için toplamları hesaplama
+				totalOrjDovizBorç += item.OrjDövizBorç;
+				totalOrjDovizAlacak += item.OrjDövizAlacak;
+				totalOrjDovizBakiye += item.OrjDövizAlacak - item.OrjDövizBorç;
+			}
+
+				<!-- Özet Bilgiler -->
+				<div class="row mb-4">
+					<!-- TL Bakiye Özeti -->
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">
+								<h5><i class="fa fa-lira-sign"></i> TL Bakiye Özeti</h5>
+							</div>
+							<div class="card-body p-0">
+								<table class="table table-bordered m-0">
+									<thead class="table-dark">
+										<tr>
+											<th>Devir</th>
+											<th>Borç</th>
+											<th>Alacak</th>
+											<th>Bakiye</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><strong>Devir</strong></td>
+											<td class="text-right"><strong>@totalAnaDovizBorç.ToString("N2") ₺</strong></td>
+											<td class="text-right"><strong>@totalAnaDovizAlacak.ToString("N2") ₺</strong></td>
+											<td class="text-right"><strong>@totalAnaDovizBakiye.ToString("N2") ₺</strong></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<!-- USD Bakiye Özeti -->
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">
+								<h5><i class="fa fa-dollar-sign"></i> USD Bakiye Özeti</h5>
+							</div>
+							<div class="card-body p-0">
+								<table class="table table-bordered m-0">
+									<thead class="table-dark">
+										<tr>
+											<th>Devir</th>
+											<th>Borç</th>
+											<th>Alacak</th>
+											<th>Bakiye</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><strong>Devir</strong></td>
+											<td class="text-right"><strong>@totalAltDovizBorç.ToString("N2") $</strong></td>
+											<td class="text-right"><strong>@totalAltDovizAlacak.ToString("N2") $</strong></td>
+											<td class="text-right"><strong>@totalAltDovizBakiye.ToString("N2") $</strong></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<!-- Orjinal Bakiye Özeti -->
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">
+								<h5><i class="fa fa-globe"></i> Orjinal Döviz Bakiye Özeti</h5>
+							</div>
+							<div class="card-body p-0">
+								<table class="table table-bordered m-0">
+									<thead class="table-dark">
+										<tr>
+											<th>Devir</th>
+											<th>Borç</th>
+											<th>Alacak</th>
+											<th>Bakiye</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><strong>Devir</strong></td>
+											<td class="text-right"><strong>@totalOrjDovizBorç.ToString("N2")</strong></td>
+											<td class="text-right"><strong>@totalOrjDovizAlacak.ToString("N2")</strong></td>
+											<td class="text-right"><strong>@totalOrjDovizBakiye.ToString("N2")</strong></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+		}
+
+		<!-- Cari Hareket Tablosu -->
+		<div class="row">
+			<div class="col-12">
+				<div class="card fade-in">
+					<div class="card-header">
+						<h5><i class="fa fa-chart-line"></i> Cari Hareket Detayları</h5>
+					</div>
+					<div class="card-body">
+						@if (Model != null && Model.Any())
+						{
+								<div class="info-box info mb-4">
+									<i class="fa fa-info-circle"></i> Bu raporda <strong>@Model.Count()</strong> adet kayıt bulunmaktadır. 
+									Tabloyu dışa aktarmak için üstteki butonları kullanabilirsiniz.
+								</div>
+
+								<div class="table-responsive">
+									<table id="example" class="table table-bordered table-striped" style="width:100%">
+										<thead>
+											<tr>
+												<!-- Detay butonu kaldırıldı -->
+
+
+												<th style="font-size:16px">Tarih</th>
+												<th style="font-size:16px">Açıklama</th>
+												<th style="font-size:16px">Belge No</th>
+												<th style="font-size:16px">Belge Tarihi</th>
+												<th style="font-size:16px">Evrak Tipi</th> <!-- Tıklanabilir yapılacak -->
+												<th style="font-size:16px">Sorumlu İsim</th>
+												<th style="font-size:16px">Vade Tarihi</th>
+												<th style="font-size:16px">Vade Gün</th>
+
+												<th style="font-size:16px">Orj Döviz Borç</th>
+												<th style="font-size:16px">Orj Döviz Alacak</th>
+												<th style="font-size:16px">Orj Döviz Bakiye</th>
+
+											</tr>
+										</thead>
+										<tbody>
+										@foreach (var item in Model)
+										{
+													<tr>
+														<!-- Detay butonu kaldırıldı -->
+
+														<td>@item.Tarih.ToString("dd.MM.yyyy")</td>
+														<td>@item.Açıklama</td>
+														<td>@item.BelgeNo</td>
+														<td>@(item.BelgeTarihi.HasValue ? item.BelgeTarihi.Value.ToString("dd.MM.yyyy") : "-")</td>
+														<!-- Evrak tipi tıklanabilir yapıldı -->
+														<td class="clickable-cell" onclick="openDetailModal('@item.Cari_GUID')">
+															<i class="fa fa-file-alt"></i> @item.EvrakTipi
+														</td>
+														<td>@item.Sorumluİsmi</td>
+														<td>@(item.VadeTarihi.HasValue ? item.VadeTarihi.Value.ToString("dd.MM.yyyy") : "-")</td>
+														<td>@item.VadeGün</td>
+
+														<td class="text-right">@item.OrjDövizBorç.ToString("N2")</td>
+														<td class="text-right">@item.OrjDövizAlacak.ToString("N2")</td>
+														<td class="text-right">@item.OrjDövizBakiye.ToString("N2")</td>
+
+													</tr>
+										}
+										</tbody>
+									</table>
+								</div>
+						}
+						else
+						{
+								<div class="info-box warning">
+									<i class="fa fa-exclamation-triangle"></i> Seçilen kriterlere uygun veri bulunamadı. Lütfen farklı arama kriterleri deneyiniz.
+								</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Detay Modal - Genişletilmiş boyut -->
+<div class="modal fade" id="detayModal" tabindex="-1" role="dialog" aria-labelledby="detayModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-xl" role="document"> <!-- modal-xl sınıfı eklendi -->
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="detayModalLabel"><i class="fa fa-file-alt"></i> Evrak Detayları</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="loading-spinner text-center" id="modalSpinner">
+					<i class="fa fa-spinner fa-spin fa-3x"></i>
+					<p>Detaylar yükleniyor, lütfen bekleyiniz...</p>
+				</div>
+				<div id="detayContent" style="display: none;">
+					<!-- Detay içeriği buraya yüklenecek -->
+				</div>
+			</div>
+			<div class="modal-footer">
+				<!-- PDF Düğmesi Eklendi -->
+				<button type="button" class="btn btn-pdf" onclick="exportToPDF()">
+					<i class="fa fa-file-pdf"></i> PDF İndir
+				</button>
+				<button type="button" class="btn btn-modal-close" data-dismiss="modal">Kapat</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<!-- jQuery & Bootstrap Core -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<!-- DataTables -->
+<script type="text/javascript" src="~/Content/DataTables/datatables.min.js"></script>
+
+<!-- Buttons ve Uzantıları -->
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+
+<!-- Responsive DataTables -->
+<script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.js"></script>
+
+<!-- PDF export için html2pdf kütüphanesi (Modal için) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			let table = new DataTable('#example');
+		});
+	</script>
+
+
+	<script>
+	$('#example').DataTable({
+		"dom": '<"row"<"col-sm-12"B>>' +
+			'<"row"<"col-sm-6"l><"col-sm-6"f>>' +
+			't' +
+			'<"row"<"col-sm-6"i><"col-sm-6"p>>',
+		"language": {
+			"url": "/Content/DataTables/turkish.json"
+		},
+		"buttons": [
+			{
+				extend: 'copy',
+				text: '<i class="fa fa-copy"></i> Kopyala',
+				className: 'btn btn-info',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			{
+				extend: 'csv',
+				text: '<i class="fa fa-file-csv"></i> CSV',
+				className: 'btn btn-primary',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			{
+				extend: 'excel',
+				text: '<i class="fa fa-file-excel"></i> Excel',
+				className: 'btn btn-success',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			{
+				extend: 'pdf',
+				text: '<i class="fa fa-file-pdf"></i> PDF',
+				className: 'btn btn-danger',
+				exportOptions: {
+					columns: ':visible'
+				},
+				customize: function(doc) {
+					// PDF özelleştirme
+					doc.content[1].table.widths =
+						Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+					doc.defaultStyle.fontSize = 10;
+					doc.styles.tableHeader.fontSize = 11;
+					doc.styles.tableHeader.alignment = 'left';
+					doc.styles.title.fontSize = 14;
+					doc.content[0].text = 'Cari Hareket Raporu';
+
+					// Renk ayarları
+					doc.styles.tableHeader.fillColor = '#162e54';
+					doc.styles.tableHeader.color = '#fff';
+				}
+			},
+			{
+				extend: 'print',
+				text: '<i class="fa fa-print"></i> Yazdır',
+				className: 'btn btn-secondary',
+				exportOptions: {
+					columns: ':visible'
+				}
+			}
+		],
+		"columnDefs": [
+			{ "targets": "_all" } // Kolon genişliklerini sabitleme
+		],
+		"responsive": true,
+		"ordering": true,
+		"paging": true,
+		"pageLength": 5000
+	});
+	</script>
+
+	<script>
+		// Detay modalını açma işlevi - stokları gruplayarak getirecek
+		   // Detay modalını açma işlevi - iyileştirilmiş versiyon
+	function openDetailModal(guid) {
+		if (!guid) {
+			console.error('GUID değeri eksik veya geçersiz');
+			return;
+		}
+
+		// Modal açılıyor
+		$('#detayModal').modal('show');
+
+		// Yükleniyor göstergesi gösterilir
+		$('#modalSpinner').show();
+		$('#detayContent').hide().empty();
+
+		// AJAX isteği gönderme
+		$.ajax({
+			url: '/SirketDurumu/GetCariHareketDetay',
+			type: 'GET',
+			data: { guid: guid },
+			dataType: 'html',
+			timeout: 30000, // 30 saniye zaman aşımı
+			success: function(data) {
+				if (!data || data.trim() === '') {
+					// Boş yanıt durumu
+					$('#modalSpinner').hide();
+					$('#detayContent').html('<div class="alert alert-warning">Bu evrak için detay bilgisi bulunamadı.</div>').show();
+					return;
+				}
+
+				// Yükleniyor göstergesi gizlenir
+				$('#modalSpinner').hide();
+
+				// İçerik gösterilir
+				$('#detayContent').html(data).show();
+
+				// DataTable varsa yeniden initialize et
+				if ($.fn.DataTable.isDataTable('#detailTable')) {
+					$('#detailTable').DataTable().destroy();
+				}
+
+				// Detay tablosunu DataTable olarak yeniden başlat (varsa)
+				if ($('#detailTable').length > 0) {
+					$('#detailTable').DataTable({
+						"language": {
+							"url": "/Content/DataTables/turkish.json"
+						},
+						"paging": false,
+						"searching": false,
+						"info": false
+					});
+				}
+			},
+			error: function(xhr, status, error) {
+				// Hata durumunda
+				$('#modalSpinner').hide();
+				var errorMessage = xhr.status + ': ' + (xhr.statusText || error);
+				$('#detayContent').html('<div class="alert alert-danger">' +
+					'<i class="fa fa-exclamation-triangle"></i> Detaylar yüklenirken bir hata oluştu.<br>' +
+					'Hata detayı: ' + errorMessage + '</div>').show();
+				console.error('Detay getirme hatası:', error);
+			}
+		});
+	}
+
+	// Sayfa yüklendikten sonra PDF ve modal işlevlerini başlat
+	$(document).ready(function() {
+		// Modal kapatma düğmesine tıklandığında
+		$('.btn-modal-close, .close').click(function() {
+			$('#detayModal').modal('hide');
+		});
+
+		// Modal kapatıldığında içeriği temizle
+		$('#detayModal').on('hidden.bs.modal', function() {
+			$('#detayContent').empty();
+		});
+
+		// ESC tuşu ile modalı kapatma işlemi
+		$(document).keyup(function(e) {
+			if (e.key === "Escape") { // ESC tuşu
+				$('#detayModal').modal('hide');
+			}
+		});
+	});
+		   // PDF olarak dışa aktarma işlevi
+	// PDF olarak dışa aktarma işlevi - düzeltilmiş versiyon
+	function exportToPDF() {
+		// Yükleme göstergesi göster
+		$('#modalSpinner').show();
+
+		// Modal içeriğini PDF'e dönüştürme işlemi
+		var element = document.getElementById('detayContent');
+
+		if (!element || element.innerHTML.trim() === '') {
+			alert('İçerik yüklenmeden PDF oluşturulamaz. Lütfen içeriğin tam olarak yüklenmesini bekleyin.');
+			$('#modalSpinner').hide();
+			return;
+		}
+
+		// İçeriği kopyala ve gizli bir div'e ekle
+		var clonedContent = element.cloneNode(true);
+		var tempDiv = document.createElement('div');
+		tempDiv.id = 'pdfExportContent';
+		tempDiv.style.width = '100%';
+		tempDiv.style.height = 'auto';
+		tempDiv.style.position = 'absolute';
+		tempDiv.style.left = '-9999px';
+		tempDiv.appendChild(clonedContent);
+		document.body.appendChild(tempDiv);
+
+		// Tablolardaki tüm stil ve genişlik bilgilerini korumak için
+		var tables = tempDiv.querySelectorAll('table');
+		tables.forEach(function(table) {
+			table.style.width = '100%';
+			table.style.borderCollapse = 'collapse';
+
+			var cells = table.querySelectorAll('th, td');
+			cells.forEach(function(cell) {
+				cell.style.border = '1px solid #ddd';
+				cell.style.padding = '8px';
+				cell.style.textAlign = cell.className.includes('text-right') ? 'right' : 'left';
+			});
+		});
+
+		// PDF dosyası oluşturma seçenekleri
+		var opt = {
+			margin: 10,
+			filename: 'evrak-detayi.pdf',
+			image: { type: 'jpeg', quality: 1 },
+			html2canvas: {
+				scale: 2,
+				useCORS: true,
+				logging: true,
+				letterRendering: true
+			},
+			jsPDF: {
+				unit: 'mm',
+				format: 'a4',
+				orientation: 'landscape',
+				compress: true
+			}
+		};
+
+		// DOM'un tamamen render olması için bekle
+		setTimeout(function() {
+			// PDF oluştur ve indir
+			html2pdf().from(tempDiv).set(opt).save().then(function() {
+				// İşlem tamamlandıktan sonra geçici div'i kaldır
+				document.body.removeChild(tempDiv);
+				$('#modalSpinner').hide();
+			}).catch(function(error) {
+				console.error('PDF oluşturma hatası:', error);
+				alert('PDF oluşturulurken bir hata oluştu: ' + error.message);
+				document.body.removeChild(tempDiv);
+				$('#modalSpinner').hide();
+			});
+		}, 1000); // 1 saniye bekle - içeriğin tam olarak yüklenmesi için
+	}
+	</script>
+
+	<script>
+		// Modal kapatma fonksiyonunu düzeltmek için
+		$(document).ready(function() {
+			// Modal kapatma düğmesine tıklandığında
+			$('.btn-modal-close, .close').click(function() {
+				$('#detayModal').modal('hide');
+			});
+
+			// ESC tuşu ile modalı kapatma işlemi
+			$(document).keyup(function(e) {
+				if (e.key === "Escape") { // ESC tuşu
+					$('#detayModal').modal('hide');
+				}
+			});
+		});
+	</script>
+
+ <script>
+	// Arama inputundan seçilen değeri gerçek select'e aktarmak için
+	function updateCariCodeSelect(selectedValue) {
+		// Seçilen kodu gizli selectbox'a aktar
+		document.getElementById('cariKodSelect').value = selectedValue;
+
+		// Eğer selectedValue bir cari kodu ise ilgili unvanı bul ve göster
+		var selectedOption = document.querySelector('#cariKodSelect option[value="' + selectedValue + '"]');
+		if (selectedOption) {
+			// Seçilen optionın içeriğini göster (Kod - Unvan)
+			document.getElementById('cariArama').value = selectedOption.textContent;
+			// Seçili metin değerini hidden input'a kaydet
+			document.getElementById('selectedCariText').value = selectedOption.textContent;
+		}
+	}
+		// Cari Arama Modal fonksiyonları
+	function openCariSearchModal() {
+		// Modalı aç
+		$('#cariSearchModal').modal('show');
+		// Arama kutusuna odaklan
+		setTimeout(function() {
+			$('#cariModalSearch').focus();
+		}, 500);
+	}
+
+	// Cari tablosundaki aramaları filtreleme
+	function filterCariTable() {
+		var input, filter, table, tr, td1, td2, i, txtValue1, txtValue2;
+		input = document.getElementById("cariModalSearch");
+		filter = input.value.toUpperCase();
+		table = document.getElementById("cariTable");
+		tr = table.getElementsByTagName("tr");
+
+		// Tüm satırları dolaşarak arama metnine uyan kayıtları göster
+		for (i = 0; i < tr.length; i++) {
+			td1 = tr[i].getElementsByTagName("td")[0]; // Cari Kodu
+			td2 = tr[i].getElementsByTagName("td")[1]; // Cari Ünvanı
+
+			if (td1 && td2) {
+				txtValue1 = td1.textContent || td1.innerText;
+				txtValue2 = td2.textContent || td2.innerText;
+
+				if (txtValue1.toUpperCase().indexOf(filter) > -1 ||
+					txtValue2.toUpperCase().indexOf(filter) > -1) {
+					tr[i].style.display = "";
+				} else {
+					tr[i].style.display = "none";
+				}
+			}
+		}
+	}
+
+	// Modal'dan cari seçimi yapıldığında
+	function selectCariFromModal(cariKod, cariUnvan) {
+		// Cari kodunu ve görünen metni ayarla
+		document.getElementById('cariKodSelect').value = cariKod;
+		document.getElementById('cariArama').value = cariKod + " - " + cariUnvan;
+		document.getElementById('selectedCariText').value = cariKod + " - " + cariUnvan;
+
+		// Modalı kapat
+		$('#cariSearchModal').modal('hide');
+	}
+
+	// Normal arama kutusu değişikliklerini dinleme
+	function updateCariCodeSelect(selectedValue) {
+		// Seçilen kodu gizli selectbox'a aktar
+		document.getElementById('cariKodSelect').value = selectedValue;
+
+		// Eğer selectedValue bir cari kodu ise ilgili unvanı bul ve göster
+		var selectedOption = document.querySelector('#cariKodSelect option[value="' + selectedValue + '"]');
+		if (selectedOption) {
+			// Seçilen optionın içeriğini göster (Kod - Unvan)
+			document.getElementById('cariArama').value = selectedOption.textContent;
+			// Seçili metin değerini hidden input'a kaydet
+			document.getElementById('selectedCariText').value = selectedOption.textContent;
+		}
+	}
+
+	// Sayfa yüklendiğinde varsayılan tarih aralığını ayarla
+	
+	// Sayfa yüklendiğinde varsayılan tarih aralığını ayarla
+	document.addEventListener('DOMContentLoaded', function() {
+		// Eğer tarih alanları boşsa, varsayılan olarak bu ayın ilk ve son gününü ata
+		var today = new Date();
+		var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+		var lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+		var ilkTarInput = document.getElementById('ilkTar');
+		var sonTarInput = document.getElementById('sonTar');
+
+		// Tarih formatını YYYY-MM-DD olarak ayarla
+		function formatDate(date) {
+			var d = new Date(date),
+				month = '' + (d.getMonth() + 1),
+				day = '' + d.getDate(),
+				year = d.getFullYear();
+
+			if (month.length < 2)
+				month = '0' + month;
+			if (day.length < 2)
+				day = '0' + day;
+
+			return [year, month, day].join('-');
+		}
+
+		// Eğer tarih alanları boşsa, varsayılan değerleri ata
+		if (!ilkTarInput.value) {
+			ilkTarInput.value = formatDate(firstDay);
+		}
+
+		if (!sonTarInput.value) {
+			sonTarInput.value = formatDate(lastDay);
+		}
+	});
+</script>
+<style>
+	.stok-arama-container {
+		position: relative;
+		margin-right: 10px;
+		min-width: 300px;
+	}
+
+		/* Arama butonunu güzelleştirme */
+		.stok-arama-container .btn-outline-secondary {
+			background-color: #f8f9fa;
+			border-color: #ced4da;
+			color: #495057;
+		}
+
+			.stok-arama-container .btn-outline-secondary:hover {
+				background-color: #e9ecef;
+			}
+
+	/* Modal içindeki tablo stilleri */
+	#cariTable {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+		#cariTable th {
+			position: sticky;
+			top: 0;
+			background-color: #162e54;
+			color: white;
+			z-index: 10;
+		}
+
+		#cariTable tbody tr:hover {
+			background-color: #f0f8ff;
+			cursor: pointer;
+		}
+
+	/* Modal stilleri */
+	#cariSearchModal .modal-content {
+		border-radius: 0.5rem;
+		box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+	}
+
+	#cariSearchModal .modal-header {
+		background: linear-gradient(135deg, #162e54 0%, #0076a8 100%);
+		color: white;
+		border-radius: 0.5rem 0.5rem 0 0;
+	}
+
+	#cariSearchModal .close {
+		color: white;
+		text-shadow: none;
+		opacity: 0.8;
+	}
+
+		#cariSearchModal .close:hover {
+			opacity: 1;
+		}
+
+	#cariSearchModal .modal-footer {
+		border-top: 1px solid #e9ecef;
+		background-color: #f8f9fa;
+		border-radius: 0 0 0.5rem 0.5rem;
+	}
+
+	/* Mobil uyumluluk */
+	@@media (max-width: 576px) {
+		.stok-arama-container
+
+	{
+		min-width: auto;
+		width: 100%;
+	}
+
+	#cariSearchModal .modal-dialog {
+		margin: 0.5rem;
+		max-width: none;
+	}
+
+	}
+</style>

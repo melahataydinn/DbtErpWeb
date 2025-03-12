@@ -1,0 +1,704 @@
+﻿@model Deneme_proje.Models.ServisEntities.IsEmirleri
+@{
+    ViewData["Title"] = "Servis Formu ve Liste";
+}
+
+<!-- Stil tanımları -->
+<style>
+    .container-wrapper {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .form-container {
+        flex: 0.35; /* Servis formunu küçült */
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+    }
+
+    .list-container {
+        transform: translate(-50%, 0%);
+        top: 50%;
+        flex: 0.65;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+        left: 50%;
+        position: relative;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+
+
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+        .form-group label {
+            font-size: 14px;
+            margin-right: 10px;
+            flex: 0 0 70px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            flex: 1;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+    .form-row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+            .form-row .form-group:last-child {
+                margin-right: 0;
+            }
+
+    .button-row {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .totals {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .table-responsive {
+        margin-top: 20px;
+    }
+
+    .servis-table {
+        font-size: 12px;
+    }
+
+    .modal-backdrop {
+        z-index: -1;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 50% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 100%;
+        height: 25%;
+    }
+</style>
+<style>
+    .accordion-header {
+        cursor: pointer;
+        position: relative;
+    }
+
+        .accordion-header:hover {
+            background-color: #f8f9fa;
+        }
+
+    .nested-table-container {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    .active-status {
+        color: green;
+        font-weight: bold;
+    }
+
+    .red-status {
+        color: red;
+        font-weight: bold;
+    }
+
+    .accordion-content {
+        display: none;
+        background-color: #fff;
+    }
+
+        /* Açık durum için ek stil */
+        .accordion-content.show {
+            display: table-row;
+        }
+</style>
+<style>
+    .form-container {
+        padding: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+        .form-group.no {
+            width: 100%;
+        }
+
+    .form-control-sm {
+        height: calc(1.5em + 0.5rem + 2px);
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Stok/Hizmet tablosu için stiller */
+    .table-responsive {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* Toplam alanları için stiller */
+    .totals {
+        margin-top: 20px;
+        text-align: right;
+    }
+
+        .totals p {
+            margin-bottom: 5px;
+        }
+
+    /* Buton satırı için stiller */
+    .button-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: flex-end;
+    }
+</style>
+
+<div class="main-content mt-5 pt-5">
+    <!-- Form Container -->
+    <!-- List Container -->
+    <div class="px-lg-5 px-3">
+
+
+        <form method="get" action="/ServisHareketleri/AllIsEmri" class="form-inline">
+            <div class="form-group">
+                <label for="servisMerkezi" style="font-size: 12px;">Servis Merkezi:</label>
+                <select id="servisMerkezi" name="servisMerkezi" class="form-control">
+                    <option value="">Tüm Merkezler</option>
+                    <option value="Mersin">Mersin</option>
+                    <option value="Hatay">Hatay</option>
+                    <option value="Sakarya">Sakarya</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-tumblr btn-shadow waves-effect waves-light">Sorgula</button>
+            </div>
+        </form>
+
+        <div class="list-container">
+            <h2>Servis Hareketleri Listesi</h2>
+            @if (ViewBag.ServisHareketGruplari != null)
+            {
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Detay</th>
+                            <th>Evrak No</th>
+                            <th>Servis Merkezi</th>
+                            <th>Müşteri</th>
+                            <th>Plaka No</th>
+                            <th>Tarih</th>
+                            <th>Model</th>
+                            <th>Çalışma Saati</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var grup in (IEnumerable<IGrouping<dynamic, Deneme_proje.Models.ServisEntities.IsEmirleri>>)ViewBag.ServisHareketGruplari)
+                        {
+                            var firstItem = grup.FirstOrDefault();
+                            if (firstItem != null)
+                            {
+                                bool allRejected = grup.All(item => item.Durum == 0);
+                                <tr class="accordion-header">
+                                    <td>
+                                        <i class="fas fa-chevron-down toggle-icon"></i>
+                                    </td>
+                                    <td>@grup.Key.EvrakNo</td>
+                                    <td>@grup.Key.Servis_Merkezi</td>
+                                    <td>@firstItem.MusteriAdi</td>
+                                    <td>@firstItem.PlakaNo</td>
+                                    <td>@firstItem.Tarih.ToString("yyyy-MM-dd")</td>
+                                    <td>@firstItem.CihazMarkaModel</td>
+                                    <td>@firstItem.CalismaSaati</td>
+                                    <td class="@(allRejected ? "red-status" : "active-status")">
+                                        @(allRejected ? "Red Edildi" : "Aktif")
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-sm evrak-duzenle-btn" data-evrakno="@grup.Key.EvrakNo">Düzenle</button>
+                                        @if (!allRejected)
+                                        {
+                                            <button type="button" class="btn btn-danger btn-sm evrak-red-btn" data-evrakno="@grup.Key.EvrakNo">Red</button>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr class="accordion-content" style="display: none;">
+                                    <td colspan="9">
+                                        <div class="nested-table-container">
+                                            <table class="table table-striped table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Yedek Parça No</th>
+                                                        <th>Yedek Parça Adı</th>
+                                                        <th>Adet</th>
+                                                        <th>Birim Fiyat</th>
+                                                        <th>Tutar</th>
+                                                        <th>Durum</th>
+                                                        <th>İşlem</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in grup)
+                                                    {
+                                                        <tr>
+                                                            <td>@item.YedekParcaNo</td>
+                                                            <td>@item.YedekParcaAdi</td>
+                                                            <td>@item.Adet</td>
+                                                            <td>@item.BirimFiyat</td>
+                                                            <td>@item.Tutar</td>
+                                                            <td class="@(item.Durum == 1 ? "active-status" : "red-status")">
+                                                                @(item.Durum == 1 ? "Aktif" : "Red Edildi")
+                                                            </td>
+                                                            <td>
+                                                                @if (item.Durum == 1)
+                                                                {
+                                                                    <button type="button" class="btn btn-danger btn-sm satir-red-btn"
+                                                                            data-evrakno="@item.EvrakNo"
+                                                                            data-evraksirano="@item.EvrakSiraNo">
+                                                                        Red
+                                                                    </button>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>Gösterilecek veri bulunamadı.</p>
+            }
+
+        </div>
+
+    </div>
+</div>
+<!-- Modal Yapısı -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Servis Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" method="post">
+                    <input type="hidden" id="modalEvrakNo" name="evrakNo">
+
+                    <div class="mb-3">
+                        <label for="modalTarih" class="form-label">Tarih</label>
+                        <input type="date" class="form-control" id="modalTarih" name="tarih">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalNo" class="form-label">No</label>
+                        <input type="text" class="form-control" id="modalNo" name="no" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalMusteriAdi" class="form-label">Müşteri Adı</label>
+                        <input type="text" class="form-control" id="modalMusteriAdi" name="musteriAdi">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalPlakaNo" class="form-label">Plaka No</label>
+                        <input type="text" class="form-control" id="modalPlakaNo" name="plakaNo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalCihazMarkaModel" class="form-label">Cihaz Marka/Model</label>
+                        <input type="text" class="form-control" id="modalCihazMarkaModel" name="cihazMarkaModel">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalCalismaSaati" class="form-label">Çalışma Saati</label>
+                        <input type="number" class="form-control" id="modalCalismaSaati" name="calismaSaati">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalServiseGirisTarihi" class="form-label">Servise Giriş Tarihi</label>
+                        <input type="date" class="form-control" id="modalServiseGirisTarihi" name="serviseGirisTarihi">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalIlkGozlem" class="form-label">İlk Gözlem</label>
+                        <textarea class="form-control" id="modalIlkGozlem" name="ilkGozlem"></textarea>
+                    </div>
+
+                    <!-- Stok Hizmet Listesi Tablosu -->
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="modal-stok-hizmet-listesi">
+                            <thead>
+                                <tr>
+                                    <th>Yedek Parça No</th>
+                                    <th>Yedek Parça Adı</th>
+                                    <th>Adet</th>
+                                    <th>Birim Fiyat</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-stok-hizmet-body">
+                                <tr>
+                                    <td><input type="text" name="StokHizmet[0].yedekParcaNo" value="..." class="form-control form-control-sm"></td>
+                                    <td><input type="text" name="StokHizmet[0].yedekParcaAdi" value="..." class="form-control form-control-sm"></td>
+                                    <td><input type="number" name="StokHizmet[0].adet" value="..." class="form-control form-control-sm"></td>
+                                    <td><input type="number" name="StokHizmet[0].birimFiyat" value="..." class="form-control form-control-sm"></td>
+                                    <td><input type="number" name="StokHizmet[0].tutar" value="..." class="form-control form-control-sm" readonly></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals for Modal -->
+                    <div class="totals">
+                        <p>A Toplam: <span id="modal-a-toplam">0.00</span></p>
+                        <p>Vergi (%20): <span id="modal-vergi">0.00</span></p>
+                        <p>G Toplam: <span id="modal-g-toplam">0.00</span></p>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" id="saveChanges">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS kısmı -->
+<script>
+    document.querySelectorAll('.evrak-duzenle-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+
+            const evrakNo = button.getAttribute('data-evrakno');
+            fetch(`/ServisHareketleri/GetEvrak?evrakNo=${evrakNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Gelen verilerle modal formunu dolduruyoruz.
+                    document.getElementById('modalEvrakNo').value = data.evrakNo;
+                    document.getElementById('modalTarih').value = data.tarih;
+                    document.getElementById('modalMusteriAdi').value = data.musteriAdi;
+                    document.getElementById('modalPlakaNo').value = data.plakaNo;
+                    document.getElementById('modalCihazMarkaModel').value = data.cihazMarkaModel;
+                    document.getElementById('modalCalismaSaati').value = data.calismaSaati;
+                    document.getElementById('modalServiseGirisTarihi').value = data.serviseGirisTarihi;
+                    document.getElementById('modalIlkGozlem').value = data.ilkGozlem;
+
+                    // Yedek parça ve hizmet bilgileri için alanları dolduruyoruz.
+                    const tableBody = document.getElementById('modal-stok-hizmet-body');
+                    tableBody.innerHTML = ''; // Eski satırları temizle
+                    const row = `
+                                <tr>
+                                    <td><input type="text" name="yedekParcaNo" value="${data.yedekParcaNo}" class="form-control form-control-sm"></td>
+                                    <td><input type="text" name="yedekParcaAdi" value="${data.yedekParcaAdi}" class="form-control form-control-sm"></td>
+                                    <td><input type="number" name="adet" value="${data.adet}" class="form-control form-control-sm" oninput="calculateModalTutar(this)"></td>
+                                    <td><input type="number" name="birimFiyat" value="${data.birimFiyat}" class="form-control form-control-sm" oninput="calculateModalTutar(this)"></td>
+                                    <td><input type="number" name="tutar" value="${data.tutar}" class="form-control form-control-sm" readonly></td>
+                                </tr>
+                            `;
+                    tableBody.innerHTML += row;
+
+                    // Toplam değerleri güncelle
+                    updateModalTotals(parseFloat(data.tutar) || 0);
+
+                    // Modal'ı açıyoruz.
+                    $('#editModal').modal('show');
+                })
+                .catch(error => console.error('Hata:', error));
+        });
+    });
+
+    // Tutar hesaplama fonksiyonları
+    function calculateModalTutar(inputElement) {
+        const row = inputElement.closest('tr');
+        const adetInput = row.querySelector('input[name="adet"]');
+        const birimFiyatInput = row.querySelector('input[name="birimFiyat"]');
+        const tutarInput = row.querySelector('input[name="tutar"]');
+
+        const adet = parseFloat(adetInput.value) || 0;
+        const birimFiyat = parseFloat(birimFiyatInput.value) || 0;
+        const tutar = adet * birimFiyat;
+
+        tutarInput.value = tutar.toFixed(2);
+
+        calculateModalTotals();
+    }
+
+    function calculateModalTotals() {
+        let aToplam = 0;
+
+        document.querySelectorAll('#modal-stok-hizmet-body input[name="tutar"]').forEach(function (tutarInput) {
+            aToplam += parseFloat(tutarInput.value) || 0;
+        });
+
+        updateModalTotals(aToplam);
+    }
+
+    function updateModalTotals(aToplam) {
+        const vergi = aToplam * 0.20;
+        const gToplam = aToplam + vergi;
+
+        document.getElementById('modal-a-toplam').innerText = aToplam.toFixed(2);
+        document.getElementById('modal-vergi').innerText = vergi.toFixed(2);
+        document.getElementById('modal-g-toplam').innerText = gToplam.toFixed(2);
+    }
+
+    // Kaydetme işlemi
+    document.getElementById('saveChanges').addEventListener('click', () => {
+        const formData = new FormData(document.getElementById('editForm'));
+
+        fetch('/ServisHareketleri/UpdateEvrak', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Başarıyla güncellendi');
+                    location.reload();
+                } else {
+                    alert('Güncelleme sırasında hata oluştu: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Hata:', error));
+    });
+
+
+</script>
+<!-- JS - Akordeon İşlevselliği -->
+<script>
+    document.querySelectorAll('.accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const content = header.closest('.accordion').querySelector('.accordion-content');
+            const isVisible = content.style.display === 'block';
+
+            // Tüm akordeon içeriklerini kapat
+            document.querySelectorAll('.accordion-content').forEach(item => item.style.display = 'none');
+
+            // Eğer görünmüyorsa aç
+            if (!isVisible) {
+                content.style.display = 'block';
+            }
+        });
+    });
+</script>
+<script>
+
+
+
+
+
+
+
+</script>
+
+<!-- JS - Red İşlevi ve Diğer İşlemler -->
+<script>
+
+
+    document.querySelectorAll('.evrak-red-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const evrakNo = parseInt(button.getAttribute('data-evrakno'));
+            if (confirm('Bu evrakı reddetmek istediğinize emin misiniz?')) {
+                fetch('/ServisHareketleri/RedEvrak', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(evrakNo)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Evrak başarıyla reddedildi.');
+                            location.reload();
+                        } else {
+                            alert('Bir hata oluştu: ' + data.message);
+                        }
+                    })
+                    .catch(error => console.error('Hata:', error));
+            }
+        });
+    });
+
+    document.querySelectorAll('.satir-red-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const evrakNo = parseInt(button.getAttribute('data-evrakno'));
+            const evrakSiraNo = parseInt(button.getAttribute('data-evraksirano'));
+            if (confirm('Bu satırı reddetmek istediğinize emin misiniz?')) {
+                fetch('/ServisHareketleri/RedSatir', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ evrakNo: evrakNo, evrakSiraNo: evrakSiraNo })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Satır başarıyla reddedildi.');
+                            location.reload();
+                        } else {
+                            alert('Bir hata oluştu: ' + data.message);
+                        }
+                    })
+                    .catch(error => console.error('Hata:', error));
+            }
+        });
+    });
+
+    // Satır Ekleme ve Hesaplama
+    let rowIndex = 1;
+    document.getElementById('add-row-btn').addEventListener('click', function () {
+        const tableBody = document.getElementById('stok-hizmet-body');
+        const newRow = document.createElement('tr');
+
+        newRow.innerHTML = `
+                                <td><input type="text" name="StokHizmet[${rowIndex}].YedekParcaNo" class="form-control form-control-sm" /></td>
+                                <td><input type="text" name="StokHizmet[${rowIndex}].YedekParcaAdi" class="form-control form-control-sm" /></td>
+                                <td><input type="number" name="StokHizmet[${rowIndex}].Adet" class="form-control form-control-sm" oninput="calculateTutar(this)" /></td>
+                                <td><input type="number" name="StokHizmet[${rowIndex}].BirimFiyat" class="form-control form-control-sm" step="0.01" oninput="calculateTutar(this)" /></td>
+                                <td><input type="number" name="StokHizmet[${rowIndex}].Tutar" class="form-control form-control-sm" step="0.01" readonly /></td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Sil</button></td>
+                            `;
+
+        tableBody.appendChild(newRow);
+        rowIndex++;
+    });
+
+    function removeRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+        calculateTotals();
+    }
+
+    function calculateTutar(inputElement) {
+        const row = inputElement.closest('tr');
+        const adetInput = row.querySelector('input[name*="Adet"]');
+        const birimFiyatInput = row.querySelector('input[name*="BirimFiyat"]');
+        const tutarInput = row.querySelector('input[name*="Tutar"]');
+
+        const adet = parseFloat(adetInput.value) || 0;
+        const birimFiyat = parseFloat(birimFiyatInput.value) || 0;
+        const tutar = adet * birimFiyat;
+
+        tutarInput.value = tutar.toFixed(2);
+        calculateTotals();
+    }
+
+    function calculateTotals() {
+        let aToplam = 0;
+
+        document.querySelectorAll('input[name*="Tutar"]').forEach(function (tutarInput) {
+            aToplam += parseFloat(tutarInput.value) || 0;
+        });
+
+        const vergi = aToplam * 0.20;
+        const gToplam = aToplam + vergi;
+
+        document.getElementById('a-toplam').innerText = aToplam.toFixed(2);
+        document.getElementById('vergi').innerText = vergi.toFixed(2);
+        document.getElementById('g-toplam').innerText = gToplam.toFixed(2);
+    }
+
+
+</script>
+<script>
+    document.getElementById("modalServisMerkezi").addEventListener("change", function () {
+        var servisMerkezi = this.value;
+
+        if (servisMerkezi) {
+            fetch(`/ServisHareketleri/GetNextEvrakNo?servisMerkezi=${servisMerkezi}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.querySelector(".no input").value = data.nextEvrakNo;
+                })
+                .catch(error => {
+                    console.error('Error fetching Evrak No:', error);
+                    alert("Evrak No alınırken bir hata oluştu.");
+                });
+        } else {
+            document.querySelector(".no input").value = "";
+        }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tüm akordeon başlıklarını seç
+        const accordionHeaders = document.querySelectorAll('.accordion-header');
+
+        // Her başlığa tıklama olayı ekle
+        accordionHeaders.forEach(header => {
+            header.addEventListener('click', function (e) {
+                // Eğer tıklanan element buton değilse
+                if (!e.target.closest('button')) {
+                    // Bir sonraki elementi bul (content kısmı)
+                    const content = this.nextElementSibling;
+
+                    // Display durumunu kontrol et ve toggle yap
+                    if (content.style.display === 'none' || content.style.display === '') {
+                        content.style.display = 'table-row';
+                    } else {
+                        content.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // Butonlara tıklandığında yayılmayı engelle
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+    });
+</script>

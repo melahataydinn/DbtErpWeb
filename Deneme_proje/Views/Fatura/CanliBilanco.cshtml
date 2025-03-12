@@ -1,0 +1,1083 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Canlı Bilanço Raporu</title>
+	<style>
+		:root {
+			--primary-color: #2563eb;
+			--primary-dark: #1e40af;
+			--primary-light: #3b82f6;
+			--secondary-color: #64748b;
+			--light-bg: #f8fafc;
+			--dark-text: #1e293b;
+			--light-text: #f1f5f9;
+			--border-color: #cbd5e1;
+			--hover-color: #dbeafe;
+			--card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		}
+
+		body {
+			background-color: var(--light-bg);
+			color: var(--dark-text);
+			line-height: 1.6;
+		}
+
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		.header {
+			margin-bottom: 20px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+			.header h1 {
+				color: var(--primary-dark);
+				font-weight: 600;
+				font-size: 1.8rem;
+			}
+
+		.breadcrumb {
+			display: flex;
+			list-style: none;
+			align-items: center;
+		}
+
+			.breadcrumb li {
+				display: flex;
+				align-items: center;
+			}
+
+				.breadcrumb li:not(:last-child)::after {
+					content: '>';
+					margin: 0 8px;
+					color: var(--secondary-color);
+				}
+
+			.breadcrumb a {
+				color: var(--primary-color);
+				text-decoration: none;
+			}
+
+				.breadcrumb a:hover {
+					text-decoration: underline;
+				}
+
+		.card {
+			background-color: white;
+			border-radius: 8px;
+			box-shadow: var(--card-shadow);
+			margin-bottom: 20px;
+			overflow: hidden;
+		}
+
+		.card-header {
+			background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+			color: white;
+			padding: 15px 20px;
+			font-weight: 500;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.card-body {
+			padding: 20px;
+		}
+
+		/* Side by side columns */
+		.balance-columns {
+			display: flex;
+			gap: 20px;
+			width: 100%;
+		}
+
+		.balance-column {
+			flex: 1;
+		}
+
+		/* Hierarchical list styling */
+		.balance-list {
+			width: 100%;
+			border-collapse: collapse;
+			margin-bottom: 20px;
+		}
+
+			.balance-list th {
+				background-color: var(--primary-color);
+				color: white;
+				padding: 10px 15px;
+				text-align: left;
+			}
+
+			.balance-list tr:hover {
+				background-color: var(--hover-color);
+			}
+
+			.balance-list td {
+				padding: 8px 15px;
+				border-bottom: 1px solid var(--border-color);
+			}
+
+		.level-1 {
+			font-weight: 600;
+			font-size: 1.1rem;
+			background-color: var(--primary-color);
+			color: white;
+		}
+
+		.level-2 {
+			font-weight: 600;
+			background-color: #e2e8f0;
+		}
+
+			.level-2 .item-name {
+				padding-left: 20px;
+			}
+
+		.level-3 {
+			background-color: #f1f5f9;
+		}
+
+			.level-3 .item-name {
+				padding-left: 40px;
+			}
+
+		.level-4 .item-name {
+			padding-left: 60px;
+		}
+
+		.level-5 .item-name {
+			padding-left: 80px;
+		}
+
+		.level-6 .item-name {
+			padding-left: 100px;
+		}
+
+		.detail-row .item-name {
+			padding-left: 100px;
+			font-style: italic;
+			color: var(--secondary-color);
+		}
+
+		.sub-detail-row .item-name {
+			padding-left: 120px;
+			font-style: italic;
+			color: var(--secondary-color);
+		}
+
+		.item-amount {
+			text-align: right;
+			font-family: 'Consolas', monospace;
+			font-weight: 500;
+			white-space: nowrap;
+		}
+
+		.positive {
+			color: #10b981;
+		}
+
+		.negative {
+			color: #ef4444;
+		}
+
+		/* Detail tables */
+		.detail-table-container {
+			padding: 0 0 10px 100px;
+		}
+
+		.detail-table {
+			width: calc(100% - 100px);
+			border-collapse: collapse;
+			margin-bottom: 15px;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+			border-radius: 4px;
+			overflow: hidden;
+		}
+
+			.detail-table th {
+				background-color: var(--primary-light);
+				color: white;
+				text-align: left;
+				padding: 8px 12px;
+				font-size: 0.9rem;
+			}
+
+			.detail-table td {
+				padding: 6px 12px;
+				border-bottom: 1px solid var(--border-color);
+				font-size: 0.9rem;
+			}
+
+			.detail-table tr:nth-child(even) {
+				background-color: var(--light-bg);
+			}
+
+			.detail-table tr:hover {
+				background-color: var(--hover-color);
+			}
+
+			.detail-table .currency {
+				text-align: right;
+				font-family: 'Consolas', monospace;
+			}
+
+		.detail-title {
+			margin: 10px 0 5px 100px;
+			color: var(--primary-dark);
+			font-size: 0.95rem;
+		}
+
+		/* Summary box */
+		.summary-box {
+			background-color: var(--primary-light);
+			color: white;
+			padding: 15px;
+			border-radius: 8px;
+			margin-bottom: 20px;
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.summary-item {
+			text-align: center;
+		}
+
+		.summary-label {
+			font-size: 0.9rem;
+			opacity: 0.9;
+		}
+
+		.summary-value {
+			font-size: 1.2rem;
+			font-weight: 600;
+		}
+
+		.column-header {
+			background-color: var(--primary-dark);
+			color: white;
+			padding: 10px 15px;
+			border-radius: 8px 8px 0 0;
+			font-size: 1.2rem;
+			font-weight: 600;
+			margin-bottom: 10px;
+			text-align: center;
+		}
+
+		/* Responsive adjustments */
+		@@media (max-width: 768px) {
+			.header
+
+		{
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.breadcrumb {
+			margin-top: 10px;
+		}
+
+		.summary-box {
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.summary-item {
+			text-align: left;
+		}
+
+		.detail-table-container {
+			padding-left: 20px;
+		}
+
+		.detail-table {
+			width: calc(100% - 20px);
+		}
+
+		.detail-title {
+			margin-left: 20px;
+		}
+
+		.level-2 .item-name {
+			padding-left: 10px;
+		}
+
+		.level-3 .item-name {
+			padding-left: 20px;
+		}
+
+		.level-4 .item-name {
+			padding-left: 30px;
+		}
+
+		.level-5 .item-name {
+			padding-left: 40px;
+		}
+
+		.detail-row .item-name {
+			padding-left: 50px;
+		}
+
+		.balance-columns {
+			flex-direction: column;
+		}
+
+		}
+	</style>
+</head>
+<body>
+	<div class="main-content mt-5">
+		<div class="px-lg-5 px-3">
+			<div class="row">
+
+				<!-- Main Card -->
+				<div class="card">
+					<div class="card-header">
+						<h2>Bilanço Detayları</h2>
+						<div id="date-info">5 Mart 2025</div>
+					</div>
+
+					<div class="card-body">
+						<!-- Summary Box -->
+						<div class="summary-box">
+							<div class="summary-item">
+								<div class="summary-label">Toplam Aktif</div>
+								<div class="summary-value">2,456,780 ₺</div>
+							</div>
+							<div class="summary-item">
+								<div class="summary-label">Toplam Pasif</div>
+								<div class="summary-value">2,456,780 ₺</div>
+							</div>
+							<div class="summary-item">
+								<div class="summary-label">Dönen Varlıklar</div>
+								<div class="summary-value">1,285,450 ₺</div>
+							</div>
+							<div class="summary-item">
+								<div class="summary-label">K.V. Yabancı Kaynaklar</div>
+								<div class="summary-value">975,320 ₺</div>
+							</div>
+						</div>
+
+						<!-- Columns Layout -->
+						<div class="balance-columns">
+							<!-- AKTIF Column -->
+							<div class="balance-column">
+								<div class="column-header">AKTİF</div>
+
+								<!-- Hierarchical List Structure as Table -->
+
+								<table class="balance-list">
+									<thead>
+										<tr>
+											<th>Hesap</th>
+											<th>Tutar</th>
+										</tr>
+									</thead>
+									<tbody>
+										<!-- Level 1: AKTİF (VARLIKLAR) -->
+										<tr class="level-1">
+											<td class="item-name">AKTİF (VARLIKLAR)</td>
+											<td class="item-amount">2,456,780 ₺</td>
+										</tr>
+
+										<!-- Level 2: 1. DÖNEN VARLIKLAR -->
+										<tr class="level-2">
+											<td class="item-name">1. DÖNEN VARLIKLAR</td>
+											<td class="item-amount">1,285,450 ₺</td>
+										</tr>
+
+										<!-- Level 3: Hazır Değerler -->
+										<tr class="level-3">
+											<td class="item-name">Hazır Değerler</td>
+											<td class="item-amount">351,700 ₺</td>
+										</tr>
+
+										<!-- Level 4: Alınan Çekler -->
+										<tr class="level-4">
+											<td class="item-name">Alınan Çekler</td>
+											<td class="item-amount">1,053,000 ₺</td>
+										</tr>
+
+										<!-- Level 5: 2025 -->
+										<tr class="level-5">
+											<td class="item-name">2025</td>
+											<td class="item-amount">1,053,000 ₺</td>
+										</tr>
+
+										<!-- Detail: Portföyde -->
+										<tr class="detail-row">
+											<td class="item-name">Portföyde</td>
+											<td class="item-amount">351,500 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Çek 1 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Çek 1</td>
+											<td class="item-amount">300,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Çek 2 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Çek 2</td>
+											<td class="item-amount">51,500 ₺</td>
+										</tr>
+
+										<!-- Detail: Teminatta -->
+										<tr class="detail-row">
+											<td class="item-name">Teminatta</td>
+											<td class="item-amount">351,500 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Çek 1 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Çek 1</td>
+											<td class="item-amount">250,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Çek 2 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Çek 2</td>
+											<td class="item-amount">101,500 ₺</td>
+										</tr>
+
+										<!-- Detail: Tahsilatta -->
+										<tr class="detail-row">
+											<td class="item-name">Tahsilatta</td>
+											<td class="item-amount">350,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Çek 1 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Çek 1</td>
+											<td class="item-amount">150,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Çek 2 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Çek 2</td>
+											<td class="item-amount">200,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: Bankalar -->
+										<tr class="level-4">
+											<td class="item-name">Bankalar</td>
+											<td class="item-amount">170,000 ₺</td>
+										</tr>
+
+										<!-- Detail: Banka 1 -->
+										<tr class="detail-row">
+											<td class="item-name">Banka 1</td>
+											<td class="item-amount">85,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Hesap 1 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Hesap 1</td>
+											<td class="item-amount">35,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Hesap 2 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Hesap 2</td>
+											<td class="item-amount">50,000 ₺</td>
+										</tr>
+
+										<!-- Detail: Banka 2 -->
+										<tr class="detail-row">
+											<td class="item-name">Banka 2</td>
+											<td class="item-amount">85,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Hesap 1 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Hesap 1</td>
+											<td class="item-amount">60,000 ₺</td>
+										</tr>
+
+										<!-- Sub-Detail: Hesap 2 -->
+										<tr class="sub-detail-row">
+											<td class="item-name">Hesap 2</td>
+											<td class="item-amount">25,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: Diğer Hazır Değerler -->
+										<tr class="level-4">
+											<td class="item-name">Diğer Hazır Değerler</td>
+											<td class="item-amount">110,300 ₺</td>
+										</tr>
+
+										<!-- Detail: POS Kredi Kartı -->
+										<tr class="detail-row">
+											<td class="item-name">POS Kredi Kartı</td>
+											<td class="item-amount">110,300 ₺</td>
+										</tr>
+
+										<!-- Level 3: TİCARİ ALACAKLAR -->
+										<tr class="level-3">
+											<td class="item-name">TİCARİ ALACAKLAR</td>
+											<td class="item-amount">167,370 ₺</td>
+										</tr>
+
+										<!-- Level 4: ARTI BAKİYELİ TİCARİ ALACAKLAR -->
+										<tr class="level-4">
+											<td class="item-name">ARTI BAKİYELİ TİCARİ ALACAKLAR</td>
+											<td class="item-amount">46,420 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 1 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 1</td>
+											<td class="item-amount">21,250 ₺</td>
+										</tr>
+
+										<!-- Detail: KAPANMAMIŞ DETAY FATURA -->
+										<tr class="detail-row">
+											<td class="item-name">KAPANMAMIŞ DETAY FATURA</td>
+											<td class="item-amount">21,250 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 2 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 2</td>
+											<td class="item-amount">25,170 ₺</td>
+										</tr>
+
+										<!-- Detail: KAPANMAMIŞ DETAY FATURA -->
+										<tr class="detail-row">
+											<td class="item-name">KAPANMAMIŞ DETAY FATURA</td>
+											<td class="item-amount">25,170 ₺</td>
+										</tr>
+
+										<!-- Level 4: EKSİ BAKİYELİ TİCARİ ALACAKLAR -->
+										<tr class="level-4">
+											<td class="item-name">EKSİ BAKİYELİ TİCARİ ALACAKLAR</td>
+											<td class="item-amount negative">-11,250 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 1 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 1</td>
+											<td class="item-amount negative">-5,450 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 2 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 2</td>
+											<td class="item-amount negative">-5,800 ₺</td>
+										</tr>
+
+										<!-- Level 4: Alacak Senetleri -->
+										<tr class="level-4">
+											<td class="item-name">Alacak Senetleri</td>
+											<td class="item-amount">77,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: Verilen Dep. ve Teminatlar -->
+										<tr class="level-4">
+											<td class="item-name">Verilen Dep. ve Teminatlar</td>
+											<td class="item-amount">40,750 ₺</td>
+										</tr>
+
+										<!-- Detail: FİRMA 1 -->
+										<tr class="detail-row">
+											<td class="item-name">FİRMA 1</td>
+											<td class="item-amount">25,000 ₺</td>
+										</tr>
+
+										<!-- Detail: FİRMA 2 -->
+										<tr class="detail-row">
+											<td class="item-name">FİRMA 2</td>
+											<td class="item-amount">15,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Diğer Ticari Alacaklar -->
+										<tr class="level-4">
+											<td class="item-name">Diğer Ticari Alacaklar</td>
+											<td class="item-amount">28,200 ₺</td>
+										</tr>
+
+										<!-- Level 4: Şüpheli Ticari Alacaklar -->
+										<tr class="level-4">
+											<td class="item-name">Şüpheli Ticari Alacaklar</td>
+											<td class="item-amount">45,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Şüph.Tic.Alac.Karşılığı (-) -->
+										<tr class="level-4">
+											<td class="item-name">Şüph.Tic.Alac.Karşılığı (-)</td>
+											<td class="item-amount negative">-45,750 ₺</td>
+										</tr>
+
+										<!-- Level 3: DİĞER ÇEŞİTLİ ALACAKLAR -->
+										<tr class="level-3">
+											<td class="item-name">DİĞER ÇEŞİTLİ ALACAKLAR</td>
+											<td class="item-amount">110,950 ₺</td>
+										</tr>
+
+										<!-- Level 4: Ortaklardan Alacaklar -->
+										<tr class="level-4">
+											<td class="item-name">Ortaklardan Alacaklar</td>
+											<td class="item-amount">89,750 ₺</td>
+										</tr>
+
+										<!-- Detail: Hasan AVCI -->
+										<tr class="detail-row">
+											<td class="item-name">Hasan AVCI</td>
+											<td class="item-amount">52,500 ₺</td>
+										</tr>
+
+										<!-- Detail: Diğer Ortaklar -->
+										<tr class="detail-row">
+											<td class="item-name">Diğer Ortaklar</td>
+											<td class="item-amount">37,250 ₺</td>
+										</tr>
+
+										<!-- Level 4: Personelden Alacaklar -->
+										<tr class="level-4">
+											<td class="item-name">Personelden Alacaklar</td>
+											<td class="item-amount">8,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Diğer Çeşitli Alacaklar -->
+										<tr class="level-4">
+											<td class="item-name">Diğer Çeşitli Alacaklar</td>
+											<td class="item-amount">12,450 ₺</td>
+										</tr>
+
+										<!-- Level 3: STOKLAR -->
+										<tr class="level-3">
+											<td class="item-name">STOKLAR</td>
+											<td class="item-amount">737,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: İlk Madde Malzeme -->
+										<tr class="level-4">
+											<td class="item-name">İlk Madde Malzeme</td>
+											<td class="item-amount">277,500 ₺</td>
+										</tr>
+
+										<!-- Detail: Hammadde 1 -->
+										<tr class="detail-row">
+											<td class="item-name">Hammadde 1</td>
+											<td class="item-amount">125,450 ₺</td>
+										</tr>
+
+										<!-- Detail: Hammadde 2 -->
+										<tr class="detail-row">
+											<td class="item-name">Hammadde 2</td>
+											<td class="item-amount">87,250 ₺</td>
+										</tr>
+
+										<!-- Detail: Hammadde 3 -->
+										<tr class="detail-row">
+											<td class="item-name">Hammadde 3</td>
+											<td class="item-amount">64,800 ₺</td>
+										</tr>
+
+										<!-- Level 4: Mamuller -->
+										<tr class="level-4">
+											<td class="item-name">Mamuller</td>
+											<td class="item-amount">243,950 ₺</td>
+										</tr>
+
+										<!-- Detail: Mamül 1 -->
+										<tr class="detail-row">
+											<td class="item-name">Mamül 1</td>
+											<td class="item-amount">98,750 ₺</td>
+										</tr>
+
+										<!-- Detail: Mamül 2 -->
+										<tr class="detail-row">
+											<td class="item-name">Mamül 2</td>
+											<td class="item-amount">145,200 ₺</td>
+										</tr>
+
+										<!-- Level 4: Ticari Mallar -->
+										<tr class="level-4">
+											<td class="item-name">Ticari Mallar</td>
+											<td class="item-amount">215,450 ₺</td>
+										</tr>
+
+										<!-- Level 4: Diğer Stoklar -->
+										<tr class="level-4">
+											<td class="item-name">Diğer Stoklar</td>
+											<td class="item-amount">90,250 ₺</td>
+										</tr>
+
+										<!-- Detail: Depo 1 -->
+										<tr class="detail-row">
+											<td class="item-name">Depo 1</td>
+											<td class="item-amount">52,800 ₺</td>
+										</tr>
+
+										<!-- Detail: Depo 2 -->
+										<tr class="detail-row">
+											<td class="item-name">Depo 2</td>
+											<td class="item-amount">37,450 ₺</td>
+										</tr>
+
+										<!-- Level 4: Verilen Sipariş Avansları -->
+										<tr class="level-4">
+											<td class="item-name">Verilen Sipariş Avansları</td>
+											<td class="item-amount">78,050 ₺</td>
+										</tr>
+
+										<!-- Detail: FİRMA 1 -->
+										<tr class="detail-row">
+											<td class="item-name">FİRMA 1</td>
+											<td class="item-amount">45,250 ₺</td>
+										</tr>
+
+										<!-- Detail: FİRMA 2 -->
+										<tr class="detail-row">
+											<td class="item-name">FİRMA 2</td>
+											<td class="item-amount">32,800 ₺</td>
+										</tr>
+
+										<!-- Level 3: GELECEK AYLARA AİT GİDER VE GELİR TAHAKKUKLARI -->
+										<tr class="level-3">
+											<td class="item-name">GELECEK AYLARA AİT GİDER VE GELİR TAHAKKUKLARI</td>
+											<td class="item-amount">35,250 ₺</td>
+										</tr>
+
+										<!-- Level 4: Gelecek Aylara Ait Giderler -->
+										<tr class="level-4">
+											<td class="item-name">Gelecek Aylara Ait Giderler</td>
+											<td class="item-amount">35,250 ₺</td>
+										</tr>
+
+										<!-- Level 3: DİĞER DÖNEN VARLIKLAR -->
+										<tr class="level-3">
+											<td class="item-name">DİĞER DÖNEN VARLIKLAR</td>
+											<td class="item-amount">151,600 ₺</td>
+										</tr>
+
+										<!-- Level 4: İş Avansları -->
+										<tr class="level-4">
+											<td class="item-name">İş Avansları</td>
+											<td class="item-amount">18,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Peşin Ödenen Vergiler -->
+										<tr class="level-4">
+											<td class="item-name">Peşin Ödenen Vergiler</td>
+											<td class="item-amount">42,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: Personel Avansları -->
+										<tr class="level-4">
+											<td class="item-name">Personel Avansları</td>
+											<td class="item-amount">8,950 ₺</td>
+										</tr>
+
+										<!-- Detail: Personel 1 -->
+										<tr class="detail-row">
+											<td class="item-name">Personel 1</td>
+											<td class="item-amount">5,750 ₺</td>
+										</tr>
+
+										<!-- Detail: Personel 2 -->
+										<tr class="detail-row">
+											<td class="item-name">Personel 2</td>
+											<td class="item-amount">3,200 ₺</td>
+										</tr>
+
+										<!-- Level 4: Devreden KDV -->
+										<tr class="level-4">
+											<td class="item-name">Devreden KDV</td>
+											<td class="item-amount">63,200 ₺</td>
+										</tr>
+
+										<!-- Detail: Ocak 2025 -->
+										<tr class="detail-row">
+											<td class="item-name">Ocak 2025</td>
+											<td class="item-amount">28,450 ₺</td>
+										</tr>
+
+										<!-- Detail: Şubat 2025 -->
+										<tr class="detail-row">
+											<td class="item-name">Şubat 2025</td>
+											<td class="item-amount">34,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Sayım Tesellüm Noksanlıkları -->
+										<tr class="level-4">
+											<td class="item-name">Sayım Tesellüm Noksanlıkları</td>
+											<td class="item-amount">20,200 ₺</td>
+										</tr>
+
+										<!-- Detail: Stok Sayım Farkları -->
+										<tr class="detail-row">
+											<td class="item-name">Stok Sayım Farkları</td>
+											<td class="item-amount">12,350 ₺</td>
+										</tr>
+
+										<!-- Detail: Diğer Sayım Noksanlıkları -->
+										<tr class="detail-row">
+											<td class="item-name">Diğer Sayım Noksanlıkları</td>
+											<td class="item-amount">7,850 ₺</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<!-- PASIF Column -->
+							<div class="balance-column">
+								<div class="column-header">PASİF</div>
+
+								<!-- Hierarchical List Structure as Table -->
+								<table class="balance-list">
+									<thead>
+										<tr>
+											<th>Hesap</th>
+											<th>Tutar</th>
+										</tr>
+									</thead>
+									<tbody>
+										<!-- Level 1: PASİF (KAYNAKLAR) -->
+										<tr class="level-1">
+											<td class="item-name">PASİF (KAYNAKLAR)</td>
+											<td class="item-amount">2,456,780 ₺</td>
+										</tr>
+
+										<!-- Level 2: 3. KISA VADELİ YABANCI KAYNAKLAR -->
+										<tr class="level-2">
+											<td class="item-name">3. KISA VADELİ YABANCI KAYNAKLAR</td>
+											<td class="item-amount">975,320 ₺</td>
+										</tr>
+
+										<!-- Level 3: MALİ BORÇLAR -->
+										<tr class="level-3">
+											<td class="item-name">MALİ BORÇLAR</td>
+											<td class="item-amount">478,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: Banka Kredileri -->
+										<tr class="level-4">
+											<td class="item-name">Banka Kredileri</td>
+											<td class="item-amount">418,500 ₺</td>
+										</tr>
+
+										<!-- Level 5: BANKA 1 -->
+										<tr class="level-5">
+											<td class="item-name">BANKA 1</td>
+											<td class="item-amount">218,500 ₺</td>
+										</tr>
+
+										<!-- Detail: BANKA KREDİ 1 -->
+										<tr class="detail-row">
+											<td class="item-name">BANKA KREDİ 1</td>
+											<td class="item-amount">120,000 ₺</td>
+										</tr>
+
+										<!-- Detail: BANKA KREDİ 2 -->
+										<tr class="detail-row">
+											<td class="item-name">BANKA KREDİ 2</td>
+											<td class="item-amount">98,500 ₺</td>
+										</tr>
+
+										<!-- Level 5: BANKA 2 -->
+										<tr class="level-5">
+											<td class="item-name">BANKA 2</td>
+											<td class="item-amount">200,000 ₺</td>
+										</tr>
+
+										<!-- Detail: BANKA KREDİ 1 -->
+										<tr class="detail-row">
+											<td class="item-name">BANKA KREDİ 1</td>
+											<td class="item-amount">120,000 ₺</td>
+										</tr>
+
+										<!-- Detail: BANKA KREDİ 2 -->
+										<tr class="detail-row">
+											<td class="item-name">BANKA KREDİ 2</td>
+											<td class="item-amount">80,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: Finansal Kiralama İşlem Borçlar -->
+										<tr class="level-4">
+											<td class="item-name">Finansal Kiralama İşlem Borçlar</td>
+											<td class="item-amount">25,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: Ertelenmiş Fin. Kir. Maliyeti(-) -->
+										<tr class="level-4">
+											<td class="item-name">Ertelenmiş Fin. Kir. Maliyeti(-)</td>
+											<td class="item-amount negative">-5,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: Diğer Mali Borçlar -->
+										<tr class="level-4">
+											<td class="item-name">Diğer Mali Borçlar</td>
+											<td class="item-amount">40,000 ₺</td>
+										</tr>
+
+										<!-- Detail: Şirket Kredi Kartı -->
+										<tr class="detail-row">
+											<td class="item-name">Şirket Kredi Kartı</td>
+											<td class="item-amount">40,000 ₺</td>
+										</tr>
+
+										<!-- Level 3: TİCARİ BORÇLAR -->
+										<tr class="level-3">
+											<td class="item-name">TİCARİ BORÇLAR</td>
+											<td class="item-amount">285,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Satıcılar -->
+										<tr class="level-4">
+											<td class="item-name">Satıcılar</td>
+											<td class="item-amount">195,000 ₺</td>
+										</tr>
+
+										<!-- Level 5: ARTI BAKİYELİ TİCARİ BORÇLAR -->
+										<tr class="level-5">
+											<td class="item-name">ARTI BAKİYELİ TİCARİ BORÇLAR</td>
+											<td class="item-amount">185,000 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 1 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 1</td>
+											<td class="item-amount">85,000 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 2 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 2</td>
+											<td class="item-amount">100,000 ₺</td>
+										</tr>
+
+										<!-- Level 5: EKSİ BAKİYELİ TİCARİ BORÇLAR -->
+										<tr class="level-5">
+											<td class="item-name">EKSİ BAKİYELİ TİCARİ BORÇLAR</td>
+											<td class="item-amount">10,000 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 1 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 1</td>
+											<td class="item-amount">6,000 ₺</td>
+										</tr>
+
+										<!-- Detail: CARİ 2 -->
+										<tr class="detail-row">
+											<td class="item-name">CARİ 2</td>
+											<td class="item-amount">4,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: VERİLEN FİRMA ÇEKLERİ -->
+										<tr class="level-4">
+											<td class="item-name">VERİLEN FİRMA ÇEKLERİ</td>
+											<td class="item-amount">90,750 ₺</td>
+										</tr>
+
+										<!-- Detail: FİRMA ÇEK 1 -->
+										<tr class="detail-row">
+											<td class="item-name">FİRMA ÇEK 1</td>
+											<td class="item-amount">40,750 ₺</td>
+										</tr>
+
+										<!-- Detail: FİRMA ÇEK 2 -->
+										<tr class="detail-row">
+											<td class="item-name">FİRMA ÇEK 2</td>
+											<td class="item-amount">50,000 ₺</td>
+										</tr>
+
+										<!-- Level 3: DİĞER BORÇLAR -->
+										<tr class="level-3">
+											<td class="item-name">DİĞER BORÇLAR</td>
+											<td class="item-amount">87,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: İştiraklere Borçlar -->
+										<tr class="level-4">
+											<td class="item-name">İştiraklere Borçlar</td>
+											<td class="item-amount">45,000 ₺</td>
+										</tr>
+
+										<!-- Level 4: Personele Borçlar -->
+										<tr class="level-4">
+											<td class="item-name">Personele Borçlar</td>
+											<td class="item-amount">32,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: Diğ. Çeşitli Borçlar -->
+										<tr class="level-4">
+											<td class="item-name">Diğ. Çeşitli Borçlar</td>
+											<td class="item-amount">10,000 ₺</td>
+										</tr>
+
+										<!-- Level 3: ALINAN AVANSLAR -->
+										<tr class="level-3">
+											<td class="item-name">ALINAN AVANSLAR</td>
+											<td class="item-amount">35,750 ₺</td>
+										</tr>
+
+										<!-- Level 4: Alınan Sipariş Avansları -->
+										<tr class="level-4">
+											<td class="item-name">Alınan Sipariş Avansları</td>
+											<td class="item-amount">35,750 ₺</td>
+										</tr>
+
+										<!-- Level 3: ÖDENECEK VERGİ VE DİĞER YÜKÜMLÜLÜKLER -->
+										<tr class="level-3">
+											<td class="item-name">ÖDENECEK VERGİ VE DİĞER YÜKÜMLÜLÜKLER</td>
+											<td class="item-amount">65,820 ₺</td>
+										</tr>
+
+										<!-- Level 4: Ödenecek Vergi ve Fonlar -->
+										<tr class="level-4">
+											<td class="item-name">Ödenecek Vergi ve Fonlar</td>
+											<td class="item-amount">42,500 ₺</td>
+										</tr>
+
+										<!-- Level 4: Ödenecek Sos. Güv. Kesintileri -->
+										<tr class="level-4">
+											<td class="item-name">Ödenecek Sos. Güv. Kesintileri</td>
+											<td class="item-amount">23,320 ₺</td>
+										</tr>
+
+										<!-- Level 2: 4. UZUN VADELİ YABANCI KAYNAKLAR -->
+										<tr class="level-2">
+											<td class="item-name">4. UZUN VADELİ YABANCI KAYNAKLAR</td>
+											<td class="item-amount">420,500 ₺</td>
+										</tr>
+
+										<!-- Level 2: 5. ÖZKAYNAKLAR -->
+										<tr class="level-2">
+											<td class="item-name">5. ÖZKAYNAKLAR</td>
+											<td class="item-amount">1,060,960 ₺</td>
+										</tr>
+
+										<!-- Level 3: Ortaklara Borçlar -->
+										<tr class="level-3">
+											<td class="item-name">Ortaklara Borçlar</td>
+											<td class="item-amount">160,750 ₺</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</body>
+</html>
